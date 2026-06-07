@@ -2,11 +2,16 @@ using UnityEngine;
 
 public class EnemyChase : MonoBehaviour
 {
-    [Header("Target")] //選擇要追逐的目標
+    [Header("目標")] //選擇要追逐的目標
     public Transform target;
 
-    [Header("Enemy Settings")]
-    public float moveSpeed = 3f;
+    [Header("敵人設定")]
+    private EnemyStats enemyStats;
+
+    void Start()
+    {
+        enemyStats = GetComponent<EnemyStats>();
+    }
 
     void Update()
     {
@@ -25,7 +30,7 @@ public class EnemyChase : MonoBehaviour
 
         direction = direction.normalized;
 
-        transform.position += direction * moveSpeed * Time.deltaTime;
+        transform.position += direction * enemyStats.moveSpeed * Time.deltaTime;
 
         if (direction != Vector3.zero)
         {

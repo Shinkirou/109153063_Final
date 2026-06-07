@@ -3,7 +3,7 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("敵人")] //敵人預製體
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefabs;
 
     [Header("玩家")] //玩家(追逐的目標)
     public Transform player;
@@ -32,14 +32,19 @@ public class EnemySpawner : MonoBehaviour
             randomCircle.x,0f,randomCircle.y
         ) * spawnDistance;
 
-        GameObject enemy = Instantiate(
-            enemyPrefab,
-            spawnPosition,
-            Quaternion.identity
-        );
+        int randomIndex =
+        Random.Range(0, enemyPrefabs.Length);
 
+        GameObject selectedEnemy =enemyPrefabs[randomIndex];
+
+        GameObject enemy =
+            Instantiate(
+            selectedEnemy,
+            spawnPosition,
+            Quaternion.identity);
+ 
         //讓生成的敵人追逐玩家
-        EnemyChase enemyChase = enemy.GetComponent<EnemyChase>();
+         EnemyChase enemyChase = enemy.GetComponent<EnemyChase>();
 
         if (enemyChase != null)
         {
