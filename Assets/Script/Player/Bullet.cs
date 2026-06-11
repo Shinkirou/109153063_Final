@@ -30,6 +30,7 @@ public class Bullet : MonoBehaviour
 
         Vector3 direction = target.position - transform.position;
         direction.y = 0f;
+
         direction = direction.normalized;
 
         transform.position += direction * speed * Time.deltaTime;
@@ -37,20 +38,21 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+
+        EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+        if (other.CompareTag("Player"))
+        {
+            return;
+        }
         Debug.Log("碰到：" + other.name);
 
-        if (!other.CompareTag("Enemy"))
+        if (enemyHealth == null)
         {
             return;
         }
 
-        EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
-
-        if (enemyHealth != null)
-        {
-            Debug.Log("成功造成傷害");
-            enemyHealth.TakeDamage(damage);
-        }
+        //Debug.Log("成功造成傷害");
+        enemyHealth.TakeDamage(damage);
 
         Destroy(gameObject);
     }

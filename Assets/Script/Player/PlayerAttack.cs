@@ -19,26 +19,32 @@ public class PlayerAttack : MonoBehaviour
 
         if (attackTimer >= attackInterval)
         {
-            AttackNearestEnemy();
+            GameObject target = FindNearestEnemy();
+
+            if (target != null)
+            {
+                Shoot(target);
+            }
+
             attackTimer = 0f;
         }
     }
 
-    void AttackNearestEnemy()
+    GameObject FindNearestEnemy()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
-        GameObject nearestEnemy = null;         //用於存儲最近的敵人
-        float nearestDistance = Mathf.Infinity; //初始化為無限大
+        GameObject nearestEnemy = null;
+        float nearestDistance = Mathf.Infinity;
 
-        foreach (GameObject enemy in enemies)   //把 enemies 陣列裡的每一個 enemy 拿出來檢查
+        foreach (GameObject enemy in enemies)
         {
             float distance = Vector3.Distance(
                 transform.position,
                 enemy.transform.position
             );  //計算玩家和敵人之間的距離
-
-            //判斷如果這個距離比目前找到的最近距離更近，且在攻擊範圍內，就更新最近的敵人和距離
+                
+            //判斷如果這個距離比目前找到的最近距離更近，且在攻擊範圍內
             if (distance < nearestDistance && distance <= attackRange)
             {
                 nearestDistance = distance;
@@ -48,26 +54,23 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        if (nearestEnemy == null)
-        {
-            return;
-        }
+        return nearestEnemy;
+    }
 
-        //子彈生成
+    void Shoot(GameObject target)
+    {
+       
         GameObject bullet = Instantiate(
-           bulletPrefab,
-           firePoint.position,
-           Quaternion.identity
+            bulletPrefab,
+            firePoint.position,
+            Quaternion.identity
         );
 
         Bullet bulletScript = bullet.GetComponent<Bullet>();
 
         if (bulletScript != null)
         {
-            bulletScript.SetTarget(
-                nearestEnemy.transform,
-                damage
-            );
+            bulletScript.SetTarget(target.transform,damage);
         }
     }
 }
