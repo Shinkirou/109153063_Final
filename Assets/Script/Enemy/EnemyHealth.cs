@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
+    public GameObject expGemPrefab;                 //經驗值預製體
+
     private EnemyStats enemyStats;
     private int currentHP; 
 
@@ -26,6 +28,14 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
+        if (expGemPrefab != null)
+        {
+            Instantiate(
+                expGemPrefab,
+                transform.position,
+                Quaternion.identity
+            );
+        }
         Debug.Log(enemyStats.enemyName + " 死亡");
         Destroy(gameObject);
     }

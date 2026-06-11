@@ -167,6 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 732b3d94ed159bc4faa0e96372384740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
+  expGemPrefab: {fileID: 4545660833000066676, guid: 743f58f97cd2a784bb2af9de7e9388cf, type: 3}
 --- !u!65 &6915570369298141071
 BoxCollider:
   m_ObjectHideFlags: 0
