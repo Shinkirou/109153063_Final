@@ -44,7 +44,8 @@ public class Bullet : MonoBehaviour
         {
             return;
         }
-        Debug.Log("碰到：" + other.name);
+
+        //Debug.Log("碰到：" + other.name);
 
         if (enemyHealth == null)
         {

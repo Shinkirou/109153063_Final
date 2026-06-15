@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: -7048938328560547764}
   - component: {fileID: 5738093203448691626}
   - component: {fileID: 810820944857315876}
+  - component: {fileID: -1760930804255865504}
   m_Layer: 0
   m_Name: Enemy_Tank
   m_TagString: Enemy
@@ -183,9 +184,22 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-1760930804255865504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7786551118608086645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e0b07ffb8b2d064c9524cbca38aac9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
+  attackInterval: 3
