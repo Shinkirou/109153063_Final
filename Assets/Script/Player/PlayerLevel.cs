@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class PlayerLevel : MonoBehaviour
 {
@@ -7,6 +9,11 @@ public class PlayerLevel : MonoBehaviour
     public int currentExp = 0;          //當前經驗值
     public int expToNextLevel = 5;      //當前升級所需經驗值  
 
+    [Header("升級面板")]
+    public TMP_Text levelText;
+    public TMP_Text expText;
+    public Image expFillImage;
+
     [Header("升級系統")]
     public UpgradeManager upgradeManager;
 
@@ -14,18 +21,37 @@ public class PlayerLevel : MonoBehaviour
     {
         currentExp += amount;
 
-        Debug.Log("獲得經驗：" + amount + "，目前經驗：" + currentExp);
-
-        if (currentExp >= expToNextLevel)
+        while (currentExp >= expToNextLevel)
         {
             LevelUp();
+        }
+
+        UpdateLevelUI();
+    }
+
+    void UpdateLevelUI()
+    {
+        if (levelText != null)
+        {
+            levelText.text = "Lv." + level;
+        }
+
+        if (expText != null)
+        {
+            expText.text = "EXP:" + currentExp + " / " + expToNextLevel;
+        }
+
+        if (expFillImage != null)
+        {
+            expFillImage.fillAmount = (float)currentExp / expToNextLevel;
         }
     }
 
     void LevelUp()
     {
-        level++;
         currentExp -= expToNextLevel;
+        level++;
+
         expToNextLevel += 5;
 
         Debug.Log("升級！目前等級：" + level);

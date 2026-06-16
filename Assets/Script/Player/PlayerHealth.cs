@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 
@@ -7,6 +8,8 @@ public class PlayerHealth : MonoBehaviour
     [Header("生命設定")]
     public int maxHP = 100;
     public TMP_Text hpText;
+    public Image hpFillImage;
+
     private int currentHP;
 
     [Header("無敵時間")]                      //玩家受到傷害後的無敵時間，避免連續受到傷害
@@ -38,6 +41,11 @@ public class PlayerHealth : MonoBehaviour
         {
             hpText.text = "HP: " + currentHP + " / " + maxHP;
         }
+
+        if (hpFillImage != null)
+        {
+            hpFillImage.fillAmount = (float)currentHP / maxHP;
+        }
     }
 
     public void TakeDamage(int damage)
@@ -68,6 +76,19 @@ public class PlayerHealth : MonoBehaviour
         }
 
         StartCoroutine(InvincibleCoroutine());
+    }
+    public void Heal(int amount)
+    {
+        currentHP += amount;
+
+        if (currentHP > maxHP)
+        {
+            currentHP = maxHP;
+        }
+
+        UpdateHPUI();
+
+        Debug.Log("玩家回復生命：" + amount + "，目前生命：" + currentHP);
     }
 
     IEnumerator InvincibleCoroutine()
@@ -110,17 +131,5 @@ public class PlayerHealth : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    public void Heal(int amount)
-    {
-        currentHP += amount;
-
-        if (currentHP > maxHP)
-        {
-            currentHP = maxHP;
-        }
-
-        UpdateHPUI();
-
-        Debug.Log("玩家回復生命：" + amount + "，目前生命：" + currentHP);
-    }
+    
 }
