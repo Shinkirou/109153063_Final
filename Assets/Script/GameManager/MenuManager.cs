@@ -21,60 +21,66 @@ public class MenuManager : MonoBehaviour
     // 顯示主選單，隱藏難度選單
     public void ShowMainMenu()
     {
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
-        if (difficultyPanel != null) difficultyPanel.SetActive(false);
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
+        if (mainMenuPanel != null)
+        {
+            mainMenuPanel.SetActive(true);
+        }
+        if (difficultyPanel != null)
+        {
+            difficultyPanel.SetActive(false);
+        }
+        if (howToPlayPanel != null)
+        {
+            howToPlayPanel.SetActive(false);
+        }
     }
 
     // 顯示難度選單，隱藏主選單
     public void ShowDifficultyMenu()
     {
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-        if (difficultyPanel != null) difficultyPanel.SetActive(true);
+        if (mainMenuPanel != null)
+        {
+            mainMenuPanel.SetActive(false);
+        }
+        if (difficultyPanel != null)
+        {
+            difficultyPanel.SetActive(true);
+        }
     }
 
     // 打開玩法介紹
     public void OpenHowToPlay()
     {
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(true);
+        if (howToPlayPanel != null)
+        {
+            howToPlayPanel.SetActive(true);
+        }
     }
 
     // 關閉玩法介紹
     public void CloseHowToPlay()
     {
-        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
+        if (howToPlayPanel != null) 
+        {
+            howToPlayPanel.SetActive(false);
+        }
     }
 
     // --- 難度按鈕點擊事件 (點擊後直接帶入數值並開始遊戲) ---
 
     public void SelectEasyMode()
     {
-        StartGameWithDifficulty(0); // 簡單
+        GameManager.StartGame(1f); // 簡單
     }
 
     public void SelectNormalMode()
     {
-        StartGameWithDifficulty(1); // 普通
+        GameManager.StartGame(1.5f); // 普通
     }
 
     public void SelectHardMode()
     {
-        StartGameWithDifficulty(2); // 困難
-    }
-
-    private void StartGameWithDifficulty(int difficultyIndex)
-    {
-        float selectedDifficulty = difficultyValues[difficultyIndex];
-
-        if (GameStateManager.Instance != null)
-        {
-            // 呼叫你的 GameStateManager 去切換場景到 level1 並設定難度
-            GameStateManager.Instance.StartGame(selectedDifficulty);
-        }
-        else
-        {
-            Debug.LogError("錯誤：場景中找不到 GameStateManager！");
-        }
+        GameManager.StartGame(2.25f); // 困難
     }
 
     // --- 結束遊戲 ---

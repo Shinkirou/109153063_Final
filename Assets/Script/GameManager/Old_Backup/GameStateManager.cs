@@ -22,7 +22,7 @@ public class GameStateManager : MonoBehaviour
     public GameObject gameOverPanel;
 
     [Header("遊戲設定")]
-    public float gameDifficulty = 1f;  // 難度倍數 (簡單=0.8, 普通=1, 困難=1.2)
+    public float gameDifficulty = 1f;  
 
     void Awake()
     {

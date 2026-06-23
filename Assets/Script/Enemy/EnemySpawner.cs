@@ -42,9 +42,21 @@ public class EnemySpawner : MonoBehaviour
             selectedEnemy,
             spawnPosition,
             Quaternion.identity);
- 
+
+        // 抓取剛生出來的怪物的數值組件
+        EnemyStats stats = enemy.GetComponent<EnemyStats>();
+        if (stats != null)
+        {
+            // 根據 GameManager 記錄的難度，直接強化或弱化怪物！
+            stats.maxHP = Mathf.RoundToInt(stats.maxHP * GameManager.DifficultyMultiplier);
+            stats.damage = Mathf.RoundToInt(stats.damage * GameManager.DifficultyMultiplier);
+
+            // 如果想讓困難模式怪物跑更快，也可以連速度一起乘（選填）
+            // stats.moveSpeed *= GameManager.DifficultyMultiplier;
+        }
+
         //讓生成的敵人追逐玩家
-         EnemyChase enemyChase = enemy.GetComponent<EnemyChase>();
+        EnemyChase enemyChase = enemy.GetComponent<EnemyChase>();
 
         if (enemyChase != null)
         {
