@@ -17,7 +17,7 @@ public class PlayerLevel : MonoBehaviour
     [Header("升級系統")]
     public UpgradeManager upgradeManager;
 
-    public void AddExp(int amount)
+    public void AddExp(int amount)      
     {
         currentExp += amount;
 

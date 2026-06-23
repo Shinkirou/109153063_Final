@@ -3,61 +3,87 @@ using TMPro;
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("難度按鈕")]
-    public TextMeshProUGUI difficultyText;
+    [Header("UI 面板設定")]
+    public GameObject mainMenuPanel;      // 主選單面板 (包含標題、開始、結束)
+    public GameObject difficultyPanel;    // 難度選擇面板 (包含四個難度相關按鈕)
+    public GameObject howToPlayPanel;     // 玩法介紹面板 (選填，如果想做的話)
 
-    private float selectedDifficulty = 1f;
-    private string[] difficultyNames = { "簡單", "普通", "困難" };
-    private float[] difficultyValues = { 0.8f, 1f, 1.2f };
-    private int currentDifficultyIndex = 1;  // 默認普通
+    private float[] difficultyValues = { 1f, 1.5f, 2.25f }; // 簡單=0.8, 普通=1, 困難=1.2
 
-    void OnEnable()
+    void Start()
     {
-        UpdateDifficultyDisplay();
+        // 遊戲一開始，確保只顯示主選單，其餘隱藏
+        ShowMainMenu();
     }
+
+    // --- 面板切換功能 ---
+
+    // 顯示主選單，隱藏難度選單
+    public void ShowMainMenu()
+    {
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        if (difficultyPanel != null) difficultyPanel.SetActive(false);
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
+    }
+
+    // 顯示難度選單，隱藏主選單
+    public void ShowDifficultyMenu()
+    {
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (difficultyPanel != null) difficultyPanel.SetActive(true);
+    }
+
+    // 打開玩法介紹
+    public void OpenHowToPlay()
+    {
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(true);
+    }
+
+    // 關閉玩法介紹
+    public void CloseHowToPlay()
+    {
+        if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
+    }
+
+    // --- 難度按鈕點擊事件 (點擊後直接帶入數值並開始遊戲) ---
 
     public void SelectEasyMode()
     {
-        currentDifficultyIndex = 0;
-        UpdateDifficultyDisplay();
+        StartGameWithDifficulty(0); // 簡單
     }
 
     public void SelectNormalMode()
     {
-        currentDifficultyIndex = 1;
-        UpdateDifficultyDisplay();
+        StartGameWithDifficulty(1); // 普通
     }
 
     public void SelectHardMode()
     {
-        currentDifficultyIndex = 2;
-        UpdateDifficultyDisplay();
+        StartGameWithDifficulty(2); // 困難
     }
 
-    public void StartGame()
+    private void StartGameWithDifficulty(int difficultyIndex)
     {
-        selectedDifficulty = difficultyValues[currentDifficultyIndex];
-        
+        float selectedDifficulty = difficultyValues[difficultyIndex];
+
         if (GameStateManager.Instance != null)
         {
+            // 呼叫你的 GameStateManager 去切換場景到 level1 並設定難度
             GameStateManager.Instance.StartGame(selectedDifficulty);
+        }
+        else
+        {
+            Debug.LogError("錯誤：場景中找不到 GameStateManager！");
         }
     }
 
+    // --- 結束遊戲 ---
     public void QuitGame()
     {
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.isPlaying = false; // 在編輯器內停止遊玩
         #else
-            Application.Quit();
+            Application.Quit(); // 正式打包後關閉遊戲
         #endif
-    }
-
-    private void UpdateDifficultyDisplay()
-    {
-        if (difficultyText != null)
-        {
-            difficultyText.text = "難度: " + difficultyNames[currentDifficultyIndex];
-        }
     }
 }
