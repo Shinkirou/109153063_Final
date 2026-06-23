@@ -127,8 +127,13 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("Game Over");
-        Time.timeScale = 0f;
+        Debug.Log("遊戲結束");
+        
+        // 通知遊戲狀態管理器
+        if (GameStateManager.Instance != null)
+        {
+            GameStateManager.Instance.EndGame();
+        }
     }
 
     
