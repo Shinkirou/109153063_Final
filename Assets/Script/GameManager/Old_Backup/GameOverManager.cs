@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 
+/*
 public class GameOverManager : MonoBehaviour
 {
     [Header("遊戲結束UI")]
@@ -65,3 +66,5 @@ public class GameOverManager : MonoBehaviour
         }
     }
 }
+*/
+
