@@ -244,6 +244,75 @@ public class UpgradeManager : MonoBehaviour
         return $"{typeName} +{flatValue}";
     }
 
+    public void SelectCard(int index)
+    {
+        if (index < 0 || index >= currentCards.Count)
+        {
+            Debug.LogWarning("選擇的卡牌 index 超出範圍");
+            return;
+        }
+
+        UpgradeCard selectedCard = currentCards[index];
+
+        Debug.Log($"選擇卡牌：{selectedCard.cardName}");
+
+        ApplyCardEffect(selectedCard);
+
+        CloseUpgradePanel();
+    }
+
+    void ApplyCardEffect(UpgradeCard card)
+    {
+        switch (card.upgradeType)
+        {
+            case UpgradeType.Damage:
+                playerStats.AddFlatDamage((int)card.flatValue);
+
+                if (card.multiplierValue > 0f)
+                {
+                    playerStats.AddDamageMultiplier(card.multiplierValue);
+                }
+
+                break;
+
+            case UpgradeType.Luck:
+                playerStats.AddLuck((int)card.flatValue);
+                break;
+
+            case UpgradeType.AttackRange:
+                playerStats.AddAttackRange(card.flatValue);
+                break;
+
+            case UpgradeType.AttackSpeed:
+                playerStats.MultiplyAttackSpeed(0.9f);
+                break;
+
+            case UpgradeType.CriticalRate:
+                playerStats.AddCriticalRate(card.flatValue * 0.01f);
+                break;
+
+            case UpgradeType.CriticalDamage:
+                playerStats.AddCriticalDamage(card.flatValue * 0.1f);
+                break;
+
+            case UpgradeType.MaxHP:
+                playerStats.AddMaxHP((int)(card.flatValue * 10));
+                break;
+
+            case UpgradeType.MoveSpeed:
+                playerStats.AddMoveSpeed(card.flatValue * 0.2f);
+                break;
+
+            case UpgradeType.LifeSteal:
+                playerStats.AddLifeSteal(card.flatValue * 0.01f);
+                break;
+
+            case UpgradeType.Armor:
+                playerStats.AddArmor(card.flatValue);
+                break;
+        }
+    }
+
 
     //老加成攻擊力公式
     /*

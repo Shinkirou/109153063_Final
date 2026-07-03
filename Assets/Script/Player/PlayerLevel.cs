@@ -14,10 +14,13 @@ public class PlayerLevel : MonoBehaviour
     public TMP_Text expText;
     public Image expFillImage;
 
+    [Header("升級難度曲線")]
+    public AnimationCurve experienceCurve;
+
     [Header("升級系統")]
     public UpgradeManager upgradeManager;
 
-<<<<<<< HEAD
+
     void Start()
     {
         UpdateExpRequirement();
@@ -34,9 +37,6 @@ public class PlayerLevel : MonoBehaviour
     }
 
     public void AddExp(int amount)
-=======
-    public void AddExp(int amount)      
->>>>>>> parent of 26059cc (1.8.3 (1.6.2經驗強化))
     {
         currentExp += amount;
 
@@ -78,6 +78,20 @@ public class PlayerLevel : MonoBehaviour
         if (upgradeManager != null)
         {
             upgradeManager.ShowUpgradePanel();
+        }
+    }
+    void UpdateExpRequirement()
+    {
+        // 確保你有在 Inspector 丟入曲線，且裡面有點
+        if (experienceCurve != null && experienceCurve.length > 0)
+        {
+            // 讀取曲線在該等級（X軸）對應的經驗值（Y軸）
+            expToNextLevel = Mathf.RoundToInt(experienceCurve.Evaluate(level));
+        }
+        else
+        {
+            // 防呆保底：如果你忘記拉曲線，就用舊的公式（每級+5）避免遊戲壞掉
+            expToNextLevel = 5 + (level - 1) * 5;
         }
     }
 }

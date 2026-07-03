@@ -446,6 +446,9 @@ MonoBehaviour:
   level: 1
   currentExp: 0
   expToNextLevel: 5
+  levelText: {fileID: 18709966}
+  expText: {fileID: 1763662742}
+  expFillImage: {fileID: 1624813272}
   experienceCurve:
     serializedVersion: 2
     m_Curve:
@@ -470,9 +473,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  levelText: {fileID: 18709966}
-  expText: {fileID: 1763662742}
-  expFillImage: {fileID: 1624813272}
   upgradeManager: {fileID: 1863728832}
 --- !u!114 &59086950
 MonoBehaviour:
@@ -1024,7 +1024,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &401644061
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2143,12 +2143,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1863728832}
         m_TargetAssemblyTypeName: UpgradeManager, Assembly-CSharp
-        m_MethodName: UpgradeAttackSpeed
-        m_Mode: 1
+        m_MethodName: SelectCard
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2276,12 +2276,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1863728832}
         m_TargetAssemblyTypeName: UpgradeManager, Assembly-CSharp
-        m_MethodName: UpgradeAttackRange
-        m_Mode: 1
+        m_MethodName: SelectCard
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2421,7 +2421,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1184121732
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3505,8 +3505,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1863728832}
         m_TargetAssemblyTypeName: UpgradeManager, Assembly-CSharp
-        m_MethodName: UpgradeDamage
-        m_Mode: 1
+        m_MethodName: SelectCard
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
