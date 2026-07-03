@@ -8,10 +8,22 @@ public class PlayerStats : MonoBehaviour
     [Header("移動")]
     public float moveSpeed = 6f;
 
-    [Header("攻擊")]
-    public int damage = 3;               
+    [Header("攻擊")]            
     public float attackRange = 6f;
     public float attackInterval = 1f;   //攻擊間隔
+
+    [Header("攻擊力計算")]
+    public int baseDamage = 3;
+    public int flatDamageBonus = 0;
+    public float damageMultiplier = 1f;
+
+    public int FinalDamage
+    {
+        get
+        {
+            return Mathf.RoundToInt((baseDamage + flatDamageBonus) * damageMultiplier);
+        }
+    } 
 
     [Header("暴擊")]
     [Range(0f, 1f)]
@@ -32,11 +44,24 @@ public class PlayerStats : MonoBehaviour
     {
         moveSpeed += amount;
     }
+    public void AddFlatDamage(int amount)
+    {
+        flatDamageBonus += amount;
+    }
 
+    public void AddDamageMultiplier(float percent)
+    {
+        damageMultiplier += percent;
+    }
+
+    /*
+     //老加成攻擊力公式
     public void AddDamage(int amount)
     {
         damage += amount;
     }
+    */
+    
 
     public void AddAttackRange(float amount)
     {

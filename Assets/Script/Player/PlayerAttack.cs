@@ -84,7 +84,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (bulletScript != null)
         {
-            bulletScript.SetTarget(target.transform,playerStats.damage);
+            bulletScript.SetTarget(target.transform,playerStats.FinalDamage);
         }
     }
 }
