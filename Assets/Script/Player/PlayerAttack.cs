@@ -2,10 +2,8 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("攻擊設定")]
-    public float attackRange = 6f;
-    public float attackInterval = 1f;
-    public int damage = 3;
+    private PlayerStats playerStats;            //讀取角色數值
+
 
     [Header("子彈設定")]
     public GameObject bulletPrefab;
@@ -13,11 +11,27 @@ public class PlayerAttack : MonoBehaviour
 
     private float attackTimer = 0f;
 
+    void Start()
+    {       
+        playerStats = GetComponent<PlayerStats>();
+        
+        if(playerStats == null)
+        {
+            Debug.Log("找不到*玩家數值*這個腳本");
+        }    
+    }
+
     void Update()
     {
+        if (playerStats == null)
+        {
+            return;
+        }
+
         attackTimer += Time.deltaTime;
 
-        if (attackTimer >= attackInterval)
+        //攻擊判定，確認攻擊間隔大於玩家攻擊間隔時，先尋找目標，然後發射子彈
+        if (attackTimer >= playerStats.attackInterval)
         {
             GameObject target = FindNearestEnemy();
 
@@ -45,7 +59,7 @@ public class PlayerAttack : MonoBehaviour
             );  //計算玩家和敵人之間的距離
                 
             //判斷如果這個距離比目前找到的最近距離更近，且在攻擊範圍內
-            if (distance < nearestDistance && distance <= attackRange)
+            if (distance < nearestDistance && distance <= playerStats.attackRange)
             {
                 nearestDistance = distance;
                 nearestEnemy = enemy;
@@ -70,7 +84,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (bulletScript != null)
         {
-            bulletScript.SetTarget(target.transform,damage);
+            bulletScript.SetTarget(target.transform,playerStats.damage);
         }
     }
 }

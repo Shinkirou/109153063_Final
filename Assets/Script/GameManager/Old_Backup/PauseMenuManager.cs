@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 
+/*
 public class PauseMenuManager : MonoBehaviour
 {
     [Header("升級UI")]
@@ -81,3 +82,4 @@ public class PauseMenuManager : MonoBehaviour
         }
     }
 }
+*/

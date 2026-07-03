@@ -6,7 +6,7 @@ public class UpgradeManager : MonoBehaviour
     public GameObject upgradePanel;
 
     [Header("玩家")]
-    public PlayerAttack playerAttack;
+    public PlayerStats playerStats;
 
     public void ShowUpgradePanel()
     {
@@ -16,22 +16,39 @@ public class UpgradeManager : MonoBehaviour
 
     public void UpgradeDamage()
     {
-        playerAttack.damage += 1;
+        playerStats.AddDamage(1);
 
         CloseUpgradePanel();
     }
 
     public void UpgradeAttackSpeed()
     {
-        playerAttack.attackInterval *= 0.9f;
+        playerStats.MultiplyAttackSpeed(0.9f);
 
         CloseUpgradePanel();
     }
 
     public void UpgradeAttackRange()
     {
-        playerAttack.attackRange += 1f;
+        playerStats.AddAttackRange(1f);
+        CloseUpgradePanel();
+    }
 
+    public void UpgradeLuck()
+    {
+        playerStats.AddLuck(1);
+        CloseUpgradePanel();
+    }
+
+    public void UpgradeCriticalRate()
+    {
+        playerStats.AddCriticalRate(0.05f);
+        CloseUpgradePanel();
+    }
+
+    public void UpgradeCriticalDamage()
+    {
+        playerStats.AddCriticalDamage(0.25f);
         CloseUpgradePanel();
     }
 
