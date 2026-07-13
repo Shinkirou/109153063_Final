@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class UpgradeManager : MonoBehaviour
 {
@@ -12,10 +13,17 @@ public class UpgradeManager : MonoBehaviour
     [Header("玩家")]
     public PlayerStats playerStats;
 
+    [Header("卡牌文字")]
+    public TMP_Text cardText1;
+    public TMP_Text cardText2;
+    public TMP_Text cardText3;
+
+    //處發升級，會打開升級面板，並暫停遊戲
     public void ShowUpgradePanel()
     {
         
         GenerateUpgradeCards();             //製作牌的方法
+        UpdateCardUI();                     //更新UI文字
 
         //打開升級面板，暫停遊戲
         upgradePanel.SetActive(true);
@@ -244,10 +252,42 @@ public class UpgradeManager : MonoBehaviour
         return $"{typeName} +{flatValue}";
     }
 
+    //更新UI文字
+    void UpdateCardUI()
+    {
+        if (currentCards.Count < 3)
+        {
+            Debug.LogWarning("目前卡牌數量不足 3 張，無法更新 UI。");
+            return;
+        }
+
+        SetCardText(cardText1, currentCards[0]);
+        SetCardText(cardText2, currentCards[1]);
+        SetCardText(cardText3, currentCards[2]);
+
+        //單張卡牌的顯示樣式
+        void SetCardText(TMP_Text textComponent, UpgradeCard card)
+        {
+            if (textComponent == null)
+            {
+                Debug.LogWarning("有卡牌文字元件尚未在 Inspector 指定。");
+                return;
+            }
+
+            string rarityName = GetRarityName(card.rarity);
+
+            textComponent.text =
+                $"【{rarityName}】\n" +
+                card.description;
+        }
+    }
+        
+    //當玩家點擊 UI 畫面上的第 1、2、3 個按鈕時，就會觸發這個方法
     public void SelectCard(int index)
     {
         if (index < 0 || index >= currentCards.Count)
         {
+            // 防呆機制：如果傳進來的數字小於 0，或者大於我們抽出的卡牌總數（目前是 3 張），就報警告並攔截
             Debug.LogWarning("選擇的卡牌 index 超出範圍");
             return;
         }
@@ -261,6 +301,7 @@ public class UpgradeManager : MonoBehaviour
         CloseUpgradePanel();
     }
 
+    //負責看玩家挑中的卡片是屬於哪種屬性，並把卡片裡的隨機數值加到玩家的 playerStats中。
     void ApplyCardEffect(UpgradeCard card)
     {
         switch (card.upgradeType)
@@ -366,10 +407,9 @@ public class UpgradeManager : MonoBehaviour
     {
         playerStats.AddCriticalDamage(0.25f);
         CloseUpgradePanel();
-    }
+    }*/
 
-    */
-
+    //關閉升級面板，並恢復遊戲時間
     void CloseUpgradePanel()
     {
         upgradePanel.SetActive(false);
