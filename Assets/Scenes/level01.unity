@@ -2488,7 +2488,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1863728832}
         m_TargetAssemblyTypeName: UpgradeManager, Assembly-CSharp
-        m_MethodName: TestNormalDamageCard
+        m_MethodName: TestCreateLuckCard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

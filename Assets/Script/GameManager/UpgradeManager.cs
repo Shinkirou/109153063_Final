@@ -18,6 +18,10 @@ public class UpgradeManager : MonoBehaviour
     public TMP_Text cardText2;
     public TMP_Text cardText3;
 
+    [Header("特殊卡設定")]
+    [Range(0f, 100f)]
+    public float luckCardChance = 15f;
+
     //處發升級，會打開升級面板，並暫停遊戲
     public void ShowUpgradePanel()
     {
@@ -30,17 +34,77 @@ public class UpgradeManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    //抽三張牌的方法
+    //抽三張牌的方法，新增幸運卡的抽卡方式
     public void GenerateUpgradeCards()
     {
         currentCards.Clear();               //將上一輪升級卡牌清空
 
-        for (int i = 0; i < 3; i++)
+        float luckCardRoll = Random.Range(0f, 100f);    //每次升級只進行一次幸運牌判定
+        // 15% 機率加入一張幸運牌
+        if (luckCardRoll < luckCardChance)    //這裡可以調整幸運牌的出現機率，先設為 100% 方便測試
         {
-            UpgradeCard card = CreateRandomCard();  //製造隨機卡牌方法
-            currentCards.Add(card);                 //將製造好的卡牌存入清單中
+            UpgradeCard luckCard = CreateLuckCard();
+            currentCards.Add(luckCard);
 
-            Debug.Log($"第 {i + 1} 張卡：{card.rarity} / {card.cardName} / {card.description}");
+            Debug.Log(
+                $"本次升級抽中幸運牌，判定值：{luckCardRoll:0.00}"
+            );
+        }
+        else
+        {
+            Debug.Log(
+                $"本次升級未抽中幸運牌，判定值：{luckCardRoll:0.00}"
+            );
+        }
+
+        // 將剩餘位置補滿一般屬性卡，直到總數為 3 張
+        while (currentCards.Count < 3)
+        {
+            UpgradeCard attributeCard = CreateRandomCard();
+            currentCards.Add(attributeCard);
+        }
+
+        // 把卡牌順序打亂，避免幸運牌永遠出現在第一格
+        ShuffleCurrentCards();
+
+
+        // 顯示這次實際產生的三張卡
+        for (int i = 0; i < currentCards.Count; i++)
+        {
+            UpgradeCard card = currentCards[i];
+
+            if (card.category == CardCategory.Special)
+            {
+                Debug.Log(
+                    $"第 {i + 1} 張卡：" +
+                    $"{card.category} / " +
+                    $"{card.cardName} / " +
+                    $"{card.description}"
+                );
+            }
+            else
+            {
+                Debug.Log(
+                    $"第 {i + 1} 張卡：" +
+                    $"{card.category} / " +
+                    $"{card.rarity} / " +
+                    $"{card.cardName} / " +
+                    $"{card.description}"
+                );
+            }
+        }
+    }
+
+    //將抽到的卡牌順序打亂，避免幸運牌出現在第一格
+    void ShuffleCurrentCards()
+    {
+        for (int i = 0; i < currentCards.Count; i++)
+        {
+            int randomIndex = Random.Range(i, currentCards.Count);
+
+            UpgradeCard tempCard = currentCards[i];
+            currentCards[i] = currentCards[randomIndex];
+            currentCards[randomIndex] = tempCard;
         }
     }
 
@@ -54,6 +118,26 @@ public class UpgradeManager : MonoBehaviour
         return CreateCardByTypeAndRarity(type, rarity);
     }
 
+    //建立特殊幸運牌
+    UpgradeCard CreateLuckCard()
+    {
+        string cardName = "幸運牌";
+        string description = "幸運等級 +1";
+
+        return new UpgradeCard(
+            cardName,
+            description,
+            CardCategory.Special,
+
+            //特殊卡目前不使用這兩個欄位
+            //先填入預設值，之後程式會依 category 判斷
+            UpgradeType.Damage,
+            CardRarity.Common,
+
+            1f,
+            0f
+        );
+    }
 
     //隨機能力類型
     UpgradeType GetRandomUpgradeType()
@@ -68,50 +152,78 @@ public class UpgradeManager : MonoBehaviour
     //決定卡牌品質機率
     CardRarity GetRandomRarity()
     {
-        int luck = 0;
+        int luckLevel = 0;
 
         if (playerStats != null)
         {
-            luck = playerStats.luck;
+            luckLevel = playerStats.luckLevel;
         }
 
-        //計算每種稀有度出現的「基礎機率 %」 + 「幸運值加成 %」...不排除未來會進行修改
-        float legendaryChance = 2f + luck * 0.2f;
-        float epicChance = 8f + luck * 0.4f;
-        float rareChance = 20f + luck * 0.8f;
-        float mythicChance = 0.5f + luck * 0.1f;
+        //初始權重，抽到的稀有等級按照這個比例分配，總和為 121
+        float commonWeight = 81f;
+        float rareWeight = 27f;
+        float epicWeight = 9f;
+        float legendaryWeight = 3f;
+        float mythicWeight = 1f;
 
-        // 使用 Mathf.Clamp 限制機率的上下限，
-        mythicChance = Mathf.Clamp(mythicChance, 0.5f, 10f);       // 神話最高 10%
-        legendaryChance = Mathf.Clamp(legendaryChance, 2f, 20f);   // 傳說最高 20%
-        epicChance = Mathf.Clamp(epicChance, 8f, 35f);             // 史詩最高 35%
-        rareChance = Mathf.Clamp(rareChance, 20f, 60f);            // 稀有最高 60%
+        //每提升 1 級 luckLevel，調整各品質權重
+        commonWeight -= luckLevel * 4f;
+        rareWeight += luckLevel * 2f;
+        epicWeight += luckLevel * 1.2f;
+        legendaryWeight += luckLevel * 0.5f;
+        mythicWeight += luckLevel * 0.3f;
 
-        //抽一個數字決定稀有度
-        float roll = Random.Range(0f, 100f);
+        //防止普通權重變成負數
+        commonWeight = Mathf.Max(commonWeight, 10f);
 
-        //這邊簡單說，抽到的數字越大，就越不稀有
-        if (roll < mythicChance)
+        //計算目前所有品質的總權重
+        float totalWeight =
+            commonWeight +
+            rareWeight +
+            epicWeight +
+            legendaryWeight +
+            mythicWeight;
+
+        Debug.Log(
+            $"Luck Level：{luckLevel} | " +
+            $"普通：{commonWeight:0.0} | " +
+            $"稀有：{rareWeight:0.0} | " +
+            $"史詩：{epicWeight:0.0} | " +
+            $"傳說：{legendaryWeight:0.0} | " +
+            $"神話：{mythicWeight:0.0}"
+        );
+
+        //在 0 到總權重之間抽一個數字
+        float roll = Random.Range(0f, totalWeight);
+
+        if (roll < mythicWeight)
         {
             return CardRarity.Mythic;
         }
 
-        if (roll < mythicChance + legendaryChance)
+        roll -= mythicWeight;
+
+        if (roll < legendaryWeight)
         {
             return CardRarity.Legendary;
         }
 
-        if (roll < mythicChance + legendaryChance + epicChance)
+        roll -= legendaryWeight;
+
+        if (roll < epicWeight)
         {
             return CardRarity.Epic;
         }
 
-        if (roll < mythicChance + legendaryChance + epicChance + rareChance)
+        roll -= epicWeight;
+
+        if (roll < rareWeight)
         {
             return CardRarity.Rare;
         }
 
         return CardRarity.Common;
+        
     }
 
     //依照上面已決定好的稀有度 類型，得到的回傳值來製作卡片，組裝階段
@@ -131,6 +243,7 @@ public class UpgradeManager : MonoBehaviour
         return new UpgradeCard(
             cardName,
             description,
+            CardCategory.Attribute,
             type,
             rarity,
             flatValue,
@@ -219,9 +332,6 @@ public class UpgradeManager : MonoBehaviour
             case UpgradeType.MoveSpeed:
                 return "移動速度";
 
-            case UpgradeType.Luck:
-                return "幸運值";
-
             case UpgradeType.CriticalRate:
                 return "暴擊率";
 
@@ -265,12 +375,21 @@ public class UpgradeManager : MonoBehaviour
         SetCardText(cardText2, currentCards[1]);
         SetCardText(cardText3, currentCards[2]);
 
-        //單張卡牌的顯示樣式
+        //單張卡牌的顯示樣式，包含幸運卡出現時顯示
         void SetCardText(TMP_Text textComponent, UpgradeCard card)
         {
             if (textComponent == null)
             {
                 Debug.LogWarning("有卡牌文字元件尚未在 Inspector 指定。");
+                return;
+            }
+
+            if (card.category == CardCategory.Special)
+            {
+                textComponent.text =
+                    "【命運眷顧】\n" +
+                    $"聽說運氣會變得更好..." 
+                    ;         
                 return;
             }
 
@@ -292,16 +411,30 @@ public class UpgradeManager : MonoBehaviour
             return;
         }
 
+        if (playerStats == null)
+        {
+            Debug.LogError("UpgradeManager 尚未指定 PlayerStats。");
+            return;
+        }
+
         UpgradeCard selectedCard = currentCards[index];
 
-        Debug.Log($"選擇卡牌：{selectedCard.cardName}");
+        Debug.Log($"選擇卡牌：{selectedCard.category} / {selectedCard.cardName}");
 
-        ApplyCardEffect(selectedCard);
+        // 根據卡牌類別，決定要使用哪個方法來應用效果，如果是特殊卡就呼叫 ApplySpecialCardEffect，否則呼叫 ApplyCardEffect
+        if (selectedCard.category == CardCategory.Special)
+        {
+            ApplySpecialCardEffect(selectedCard);
+        }
+        else
+        {
+            ApplyCardEffect(selectedCard);
+        }
 
         CloseUpgradePanel();
     }
 
-    //負責看玩家挑中的卡片是屬於哪種屬性，並把卡片裡的隨機數值加到玩家的 playerStats中。
+    //負責處理一般屬性卡的效果，像是攻擊力、攻擊速度等，並把卡片裡的隨機數值加到玩家的 playerStats中
     void ApplyCardEffect(UpgradeCard card)
     {
         switch (card.upgradeType)
@@ -314,10 +447,6 @@ public class UpgradeManager : MonoBehaviour
                     playerStats.AddDamageMultiplier(card.multiplierValue);
                 }
 
-                break;
-
-            case UpgradeType.Luck:
-                playerStats.AddLuck((int)card.flatValue);
                 break;
 
             case UpgradeType.AttackRange:
@@ -354,60 +483,24 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
-
-    //老加成攻擊力公式
-    /*
-    //測試用
-    public void TestNormalDamageCard()
+    //負責處理特殊卡的效果，像是幸運牌
+    void ApplySpecialCardEffect(UpgradeCard card)
+    {
+        if (card.cardName == "幸運牌")
         {
-            playerStats.AddFlatDamage(5);
+            playerStats.AddLuckLevel(1);
+
+            Debug.Log(
+                $"幸運牌生效，目前幸運等級：{playerStats.luckLevel}"
+            );
+
+            return;
         }
 
-        public void TestMythicDamageCard()
-        {
-            playerStats.AddFlatDamage(3);
-            playerStats.AddDamageMultiplier(0.05f);
-        }
-
-    
-     /
-    public void UpgradeDamage()
-    {
-        playerStats.AddDamage(1);
-
-        CloseUpgradePanel();
+        Debug.LogWarning(
+            $"尚未處理這張特殊卡：{card.cardName}"
+        );
     }
-
-    public void UpgradeAttackSpeed()
-    {
-        playerStats.MultiplyAttackSpeed(0.9f);
-
-        CloseUpgradePanel();
-    }
-
-    public void UpgradeAttackRange()
-    {
-        playerStats.AddAttackRange(1f);
-        CloseUpgradePanel();
-    }
-
-    public void UpgradeLuck()
-    {
-        playerStats.AddLuck(1);
-        CloseUpgradePanel();
-    }
-
-    public void UpgradeCriticalRate()
-    {
-        playerStats.AddCriticalRate(0.05f);
-        CloseUpgradePanel();
-    }
-
-    public void UpgradeCriticalDamage()
-    {
-        playerStats.AddCriticalDamage(0.25f);
-        CloseUpgradePanel();
-    }*/
 
     //關閉升級面板，並恢復遊戲時間
     void CloseUpgradePanel()

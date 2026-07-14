@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
+
+    [Header("幸運系統")]
+    public int luckLevel = 0;
+
     [Header("生命")]
     public int maxHP = 100;
 
@@ -31,7 +35,6 @@ public class PlayerStats : MonoBehaviour
     public float criticalDamage = 2f;
 
     [Header("特殊能力")]
-    public int luck = 0;
     public float lifeSteal = 0f;
     public float armor = 0f;
 
@@ -93,9 +96,16 @@ public class PlayerStats : MonoBehaviour
         criticalDamage += amount;
     }
 
-    public void AddLuck(int amount)
+    public void AddLuckLevel(int amount)
     {
-        luck += amount;
+        luckLevel += amount;
+
+        if (luckLevel < 0)
+        {
+            luckLevel = 0;
+        }
+
+        Debug.Log($"幸運等級提升，目前 Luck Level：{luckLevel}");
     }
 
     public void AddLifeSteal(float amount)
