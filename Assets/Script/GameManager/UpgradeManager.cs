@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEditor.VersionControl;
+using UnityEngine;
 
 public class UpgradeManager : MonoBehaviour
 {
@@ -37,38 +38,72 @@ public class UpgradeManager : MonoBehaviour
     //抽三張牌的方法，新增幸運卡的抽卡方式
     public void GenerateUpgradeCards()
     {
-        currentCards.Clear();               //將上一輪升級卡牌清空
+        currentCards.Clear();                                   //將上一輪升級卡牌清空
 
-        float luckCardRoll = Random.Range(0f, 100f);    //每次升級只進行一次幸運牌判定
+        //HashSet 不允許同一個 UpgradeType 重複存在，因此可以用來避免同一輪出現兩張相同能力卡。
+        HashSet<UpgradeType> selectedTypes = new HashSet<UpgradeType>();
+
+        // =========================
+        // 1. 判定是否出現幸運牌
+        float luckCardRoll = Random.Range(0f, 100f);            //每次升級只進行一次幸運牌判定
         // 15% 機率加入一張幸運牌
-        if (luckCardRoll < luckCardChance)    //這裡可以調整幸運牌的出現機率，先設為 100% 方便測試
+        if (luckCardRoll < luckCardChance)                      //這裡可以調整幸運牌的出現機率，先設為 100% 方便測試
         {
             UpgradeCard luckCard = CreateLuckCard();
             currentCards.Add(luckCard);
 
-            Debug.Log(
-                $"本次升級抽中幸運牌，判定值：{luckCardRoll:0.00}"
+            Debug.Log($"本次升級抽中幸運牌，判定值：{luckCardRoll:0.00}"
             );
         }
         else
         {
-            Debug.Log(
-                $"本次升級未抽中幸運牌，判定值：{luckCardRoll:0.00}"
+            Debug.Log($"本次升級未抽中幸運牌，判定值：{luckCardRoll:0.00}"
             );
         }
 
-        // 將剩餘位置補滿一般屬性卡，直到總數為 3 張
+        // =========================
+        // 2. 用不重複屬性卡補滿三張
         while (currentCards.Count < 3)
         {
-            UpgradeCard attributeCard = CreateRandomCard();
+            UpgradeType randomType = GetRandomUpgradeType();    //隨機抽出一種能力
+
+            //如果本輪已經抽過這個能力，就使用 continue 回到 while 開頭重新抽。
+            if (selectedTypes.Contains(randomType))
+            {
+                continue;
+            }
+            
+            selectedTypes.Add(randomType);                      //記錄這個能力已經出現過    
+            CardRarity randomRarity = GetRandomRarity();        //再獨立決定這張卡的品質
+            UpgradeCard attributeCard =
+                CreateCardByTypeAndRarity(
+                    randomType,
+                    randomRarity
+                );                                              //用能力類型與品質組裝卡牌
+
             currentCards.Add(attributeCard);
         }
 
-        // 把卡牌順序打亂，避免幸運牌永遠出現在第一格
+        // =========================
+        // 3. 打亂三張卡牌的位置
         ShuffleCurrentCards();
 
+        //將抽到的卡牌順序打亂，避免幸運牌出現在第一格
+        void ShuffleCurrentCards()
+        {
+            for (int i = 0; i < currentCards.Count; i++)
+            {
+                int randomIndex = Random.Range(i, currentCards.Count);
 
-        // 顯示這次實際產生的三張卡
+                UpgradeCard tempCard = currentCards[i];
+                currentCards[i] = currentCards[randomIndex];
+                currentCards[randomIndex] = tempCard;
+            }
+        }
+
+
+        // =========================
+        // 4. 在 Console 顯示抽卡結果
         for (int i = 0; i < currentCards.Count; i++)
         {
             UpgradeCard card = currentCards[i];
@@ -92,19 +127,6 @@ public class UpgradeManager : MonoBehaviour
                     $"{card.description}"
                 );
             }
-        }
-    }
-
-    //將抽到的卡牌順序打亂，避免幸運牌出現在第一格
-    void ShuffleCurrentCards()
-    {
-        for (int i = 0; i < currentCards.Count; i++)
-        {
-            int randomIndex = Random.Range(i, currentCards.Count);
-
-            UpgradeCard tempCard = currentCards[i];
-            currentCards[i] = currentCards[randomIndex];
-            currentCards[randomIndex] = tempCard;
         }
     }
 
@@ -349,14 +371,71 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
-    //卡牌詳細敘述
+    //卡牌詳細敘述，依據不同屬性與數值，產生不同的文字敘述，產生與實際效果一致的卡牌說明
     string CreateDescription(UpgradeType type, float flatValue, float multiplierValue)
     {
-        string typeName = GetUpgradeTypeName(type);
+        string description;                             
+        string typeName = GetUpgradeTypeName(type);     
 
+        switch (type)
+        {
+            case UpgradeType.Damage:
+                description =
+                    $"攻擊力 +{flatValue * 1f:0}";
+                break;
+
+            case UpgradeType.AttackRange:
+                description =
+                    $"攻擊距離 +{flatValue:0.#}";
+                break;
+
+            case UpgradeType.AttackSpeed:
+                description =
+                    $"攻擊速度 +{flatValue * 5f:0}%";
+                break;
+
+            case UpgradeType.MaxHP:
+                description =
+                    $"最大生命 +{flatValue * 10f:0}";
+                break;
+
+            case UpgradeType.MoveSpeed:
+                description =
+                    $"移動速度 +{flatValue * 0.2f:0.0}";
+                break;
+
+            case UpgradeType.CriticalRate:
+                description =
+                    $"暴擊率 +{flatValue:0}%";
+                break;
+
+            case UpgradeType.CriticalDamage:
+                description =
+                    $"暴擊傷害 +{flatValue * 10f:0}%";
+                break;
+
+            case UpgradeType.LifeSteal:
+                description =
+                    $"吸血 +{flatValue:0}%";
+                break;
+
+            case UpgradeType.Armor:
+                description =
+                    $"防禦 +{flatValue:0.#}";
+                break;
+
+            default:
+                description =
+                    $"未知效果 +{flatValue:0.#}";
+                break;
+        }
+
+        // 神話卡的額外百分比描述
         if (multiplierValue > 0f)
         {
-            return $"{typeName} +{flatValue}，並額外提升 {multiplierValue * 100f}%";
+            description +=
+                $"\n全部{typeName}額外提升 " +
+                $"{multiplierValue * 100f:0.#}%";
         }
 
         return $"{typeName} +{flatValue}";
@@ -454,8 +533,17 @@ public class UpgradeManager : MonoBehaviour
                 break;
 
             case UpgradeType.AttackSpeed:
-                playerStats.MultiplyAttackSpeed(0.9f);
-                break;
+                {
+
+                    float attackSpeedPercent = card.flatValue * 0.05f;
+                    float intervalMultiplier = 1f - attackSpeedPercent;
+                    intervalMultiplier =Mathf.Clamp(intervalMultiplier, 0.5f, 0.95f);
+                    playerStats.MultiplyAttackSpeed(
+                        intervalMultiplier
+                    );
+
+                    break;
+                }
 
             case UpgradeType.CriticalRate:
                 playerStats.AddCriticalRate(card.flatValue * 0.01f);

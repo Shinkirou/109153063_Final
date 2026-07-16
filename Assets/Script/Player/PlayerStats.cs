@@ -57,15 +57,6 @@ public class PlayerStats : MonoBehaviour
         damageMultiplier += percent;
     }
 
-    /*
-     //老加成攻擊力公式
-    public void AddDamage(int amount)
-    {
-        damage += amount;
-    }
-    */
-    
-
     public void AddAttackRange(float amount)
     {
         attackRange += amount;
