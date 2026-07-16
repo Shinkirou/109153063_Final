@@ -2,25 +2,54 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-
-    //移動速度
-    public float moveSpeed = 6f;
-
     private CharacterController controller;
+    private PlayerStats playerStats;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        playerStats = GetComponent<PlayerStats>();
+
+        if (controller == null)
+        {
+            Debug.LogError(
+                "PlayerMovement 找不到 CharacterController，" +
+                "請確認 Player 身上有掛 CharacterController。"
+            );
+        }
+
+        if (playerStats == null)
+        {
+            Debug.LogError(
+                "PlayerMovement 找不到 PlayerStats，" +
+                "請確認 Player 身上有掛 PlayerStats.cs。"
+            );
+        }
     }
 
     void Update()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        if (controller == null || playerStats == null)
+        {
+            return;
+        }
 
-        Vector3 moveDirection = new Vector3(horizontal, 0f, vertical).normalized;
+        float horizontal =Input.GetAxisRaw("Horizontal");
 
-        controller.Move(moveDirection * moveSpeed * Time.deltaTime);
+        float vertical =Input.GetAxisRaw("Vertical");
+
+        Vector3 moveDirection =
+            new Vector3(
+                horizontal,
+                0f,
+                vertical
+            ).normalized;
+
+        controller.Move(
+            moveDirection *
+            playerStats.FinalMoveSpeed *
+            Time.deltaTime
+        );
 
         if (moveDirection != Vector3.zero)
         {

@@ -2,23 +2,26 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    private PlayerStats playerStats;            //讀取角色數值
-
-
     [Header("子彈設定")]
     public GameObject bulletPrefab;
     public Transform firePoint;
 
+    private PlayerStats playerStats;
+
+    //用來累積距離上次攻擊經過了多少時間
     private float attackTimer = 0f;
 
     void Start()
-    {       
+    {
         playerStats = GetComponent<PlayerStats>();
-        
-        if(playerStats == null)
+
+        if (playerStats == null)
         {
-            Debug.Log("找不到*玩家數值*這個腳本");
-        }    
+            Debug.LogError(
+                "PlayerAttack 找不到 PlayerStats，" +
+                "請確認兩個腳本都掛在同一個 Player 物件上。"
+            );
+        }
     }
 
     void Update()
@@ -28,10 +31,11 @@ public class PlayerAttack : MonoBehaviour
             return;
         }
 
+        //累積每一幀經過的時間
         attackTimer += Time.deltaTime;
 
-        //攻擊判定，確認攻擊間隔大於玩家攻擊間隔時，先尋找目標，然後發射子彈
-        if (attackTimer >= playerStats.attackInterval)
+        //透過讀取PlayerStats的AttackInterval，判斷是否可以攻擊
+        if (attackTimer >= playerStats.AttackInterval)
         {
             GameObject target = FindNearestEnemy();
 
@@ -46,7 +50,8 @@ public class PlayerAttack : MonoBehaviour
 
     GameObject FindNearestEnemy()
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject[] enemies =
+            GameObject.FindGameObjectsWithTag("Enemy");
 
         GameObject nearestEnemy = null;
         float nearestDistance = Mathf.Infinity;
@@ -56,15 +61,19 @@ public class PlayerAttack : MonoBehaviour
             float distance = Vector3.Distance(
                 transform.position,
                 enemy.transform.position
-            );  //計算玩家和敵人之間的距離
-                
-            //判斷如果這個距離比目前找到的最近距離更近，且在攻擊範圍內
-            if (distance < nearestDistance && distance <= playerStats.attackRange)
+            );
+
+            /*
+             * 只有比目前最近敵人更近，
+             * 並且在最終攻擊距離內的敵人才會被選中。
+             */
+            if (
+                distance < nearestDistance &&
+                distance <= playerStats.FinalAttackRange
+            )
             {
                 nearestDistance = distance;
                 nearestEnemy = enemy;
-                //Debug.Log("找到更近的敵人: " + enemy.name + " 距離: " + distance);
-                //把這隻敵人記錄成目前最近的敵人
             }
         }
 
@@ -73,18 +82,45 @@ public class PlayerAttack : MonoBehaviour
 
     void Shoot(GameObject target)
     {
-       
+        if (bulletPrefab == null)
+        {
+            Debug.LogError(
+                "PlayerAttack 尚未指定 Bullet Prefab。"
+            );
+
+            return;
+        }
+
+        if (firePoint == null)
+        {
+            Debug.LogError(
+                "PlayerAttack 尚未指定 Fire Point。"
+            );
+
+            return;
+        }
+
         GameObject bullet = Instantiate(
             bulletPrefab,
             firePoint.position,
             Quaternion.identity
         );
 
-        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        Bullet bulletScript =
+            bullet.GetComponent<Bullet>();
 
         if (bulletScript != null)
         {
-            bulletScript.SetTarget(target.transform,playerStats.FinalDamage);
+            bulletScript.SetTarget(
+                target.transform,
+                playerStats.FinalDamage
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "產生的子彈物件上找不到 Bullet.cs。"
+            );
         }
     }
 }

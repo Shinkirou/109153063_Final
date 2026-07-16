@@ -130,16 +130,6 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
-    //隨機產生單張卡
-    UpgradeCard CreateRandomCard()
-    {
-        UpgradeType type = GetRandomUpgradeType();  //抽加成屬性
-        CardRarity rarity = GetRandomRarity();      //抽稀有度
-
-        //將抽完的稀有度組合並回傳
-        return CreateCardByTypeAndRarity(type, rarity);
-    }
-
     //建立特殊幸運牌
     UpgradeCard CreateLuckCard()
     {
@@ -386,7 +376,7 @@ public class UpgradeManager : MonoBehaviour
 
             case UpgradeType.AttackRange:
                 description =
-                    $"攻擊距離 +{flatValue:0.#}";
+                    $"攻擊距離 +{flatValue * 5f:0}%";
                 break;
 
             case UpgradeType.AttackSpeed:
@@ -401,7 +391,7 @@ public class UpgradeManager : MonoBehaviour
 
             case UpgradeType.MoveSpeed:
                 description =
-                    $"移動速度 +{flatValue * 0.2f:0.0}";
+                    $"移動速度 +{flatValue * 5f:0}%";
                 break;
 
             case UpgradeType.CriticalRate:
@@ -438,7 +428,7 @@ public class UpgradeManager : MonoBehaviour
                 $"{multiplierValue * 100f:0.#}%";
         }
 
-        return $"{typeName} +{flatValue}";
+        return description;
     }
 
     //更新UI文字
@@ -518,6 +508,7 @@ public class UpgradeManager : MonoBehaviour
     {
         switch (card.upgradeType)
         {
+            //選擇攻擊力卡牌時，會把卡片裡的 flatValue 加到玩家的攻擊力上，如果是神話卡還會額外加上 multiplierValue 的百分比加成
             case UpgradeType.Damage:
                 playerStats.AddFlatDamage((int)card.flatValue);
 
@@ -528,45 +519,57 @@ public class UpgradeManager : MonoBehaviour
 
                 break;
 
+            //選擇攻擊距離卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的攻擊距離上
             case UpgradeType.AttackRange:
-                playerStats.AddAttackRange(card.flatValue);
-                break;
-
-            case UpgradeType.AttackSpeed:
                 {
-
-                    float attackSpeedPercent = card.flatValue * 0.05f;
-                    float intervalMultiplier = 1f - attackSpeedPercent;
-                    intervalMultiplier =Mathf.Clamp(intervalMultiplier, 0.5f, 0.95f);
-                    playerStats.MultiplyAttackSpeed(
-                        intervalMultiplier
-                    );
+                    float attackRangePercent = card.flatValue * 0.05f;
+                    playerStats.AddAttackRangeMultiplier(attackRangePercent);
 
                     break;
                 }
 
+
+            //選擇攻擊速度卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的攻擊速度上
+            case UpgradeType.AttackSpeed:
+                {
+                    float attackSpeedPercent =card.flatValue * 0.05f;
+                    playerStats.AddAttackSpeedMultiplier(attackSpeedPercent);
+
+                    break;
+                }
+
+            //選擇暴擊率卡牌時，會把卡片裡的 flatValue 乘上 0.01f，然後加到玩家的暴擊率上
             case UpgradeType.CriticalRate:
                 playerStats.AddCriticalRate(card.flatValue * 0.01f);
                 break;
 
+            //選擇暴擊傷害卡牌時，會把卡片裡的 flatValue 乘上 0.1f，然後加到玩家的暴擊傷害上
             case UpgradeType.CriticalDamage:
                 playerStats.AddCriticalDamage(card.flatValue * 0.1f);
                 break;
 
+            //選擇最大生命卡牌時，會把卡片裡的 flatValue 乘上 10，然後加到玩家的最大生命上
             case UpgradeType.MaxHP:
                 playerStats.AddMaxHP((int)(card.flatValue * 10));
                 break;
 
+            //選擇移動速度卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的移動速度上
             case UpgradeType.MoveSpeed:
-                playerStats.AddMoveSpeed(card.flatValue * 0.2f);
-                break;
+                {
+                    float moveSpeedPercent = card.flatValue * 0.05f;
+                    playerStats.AddMoveSpeedMultiplier(moveSpeedPercent);
 
+                    break;
+                }
+
+            //選擇吸血卡牌時，會把卡片裡的 flatValue 乘上 0.01f，然後加到玩家的吸血上
             case UpgradeType.LifeSteal:
                 playerStats.AddLifeSteal(card.flatValue * 0.01f);
                 break;
 
+            //選擇防禦卡牌時，會把卡片裡的 flatValue 乘上 3，然後加到玩家的防禦上
             case UpgradeType.Armor:
-                playerStats.AddArmor(card.flatValue);
+                playerStats.AddArmor(card.flatValue * 3);
                 break;
         }
     }
