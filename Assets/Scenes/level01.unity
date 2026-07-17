@@ -391,7 +391,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 987f1cba640c8c244b434034128c489f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
-  moveSpeed: 7
 --- !u!143 &59086947
 CharacterController:
   m_ObjectHideFlags: 0
@@ -506,18 +505,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39413634a095a0a44ac5dfeb5ea97c4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  luckLevel: 0
   maxHP: 100
-  moveSpeed: 6
-  attackRange: 6
-  attackInterval: 1
+  maxHPMultiplier: 0
+  baseMoveSpeed: 5
+  moveSpeedMultiplier: 0
+  baseAttackRange: 5
+  attackRangeMultiplier: 0
+  baseAttackSpeed: 1
+  attackSpeedMultiplier: 0
   baseDamage: 3
   flatDamageBonus: 0
   damageMultiplier: 1
   criticalRate: 0
   criticalDamage: 2
-  luck: 0
+  criticalDamageMultiplier: 0
   lifeSteal: 0
   armor: 0
+  armorMultiplier: 0
 --- !u!1 &112747163
 GameObject:
   m_ObjectHideFlags: 0
@@ -3406,6 +3411,10 @@ MonoBehaviour:
   cardText1: {fileID: 2083123377}
   cardText2: {fileID: 112747165}
   cardText3: {fileID: 1432170253}
+  luckCardChance: 15
+  baseMythicCardChance: 1.5
+  mythicChancePerLuckLevel: 0.25
+  maxMythicCardChance: 10
 --- !u!4 &1863728833
 Transform:
   m_ObjectHideFlags: 0

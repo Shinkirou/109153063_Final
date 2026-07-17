@@ -1,34 +1,58 @@
+// 特殊卡牌的種類
+// 用來區分幸運牌與四種神話牌
+public enum SpecialCardType
+{
+    None,               // 不是特殊牌，或尚未指定
+    Luck,               // 幸運牌
+    MythicCombat,       // 戰鬥本能
+    MythicDefense,      // 鋼鐵之軀
+    MythicCritical,     // 致命一擊
+    MythicSurvival      // 鮮血追獵
+}
+
+
 // 定義卡牌的資料類別
 public class UpgradeCard
 {
-    public string cardName;             // 變數：儲存卡牌名稱
-    public string description;          // 變數：儲存卡牌敘述
+    public string cardName;             // 卡牌名稱
+    public string description;          // 卡牌敘述
 
-    public CardCategory category;       // 變數：指定這張卡的類別（屬性增長卡或特殊卡）
-    /*屬性卡*/public UpgradeType upgradeType;     // 變數：指定這張卡對應哪種屬性
-    /*屬性卡*/public CardRarity rarity;           // 變數：指定這張卡的稀有度
+    public CardCategory category;       // 屬性卡或特殊卡
 
-    public float flatValue;             // 變數：基礎直加值
-    public float multiplierValue;       // 變數：百分比乘算值
+    // 只有一般屬性卡會使用
+    public UpgradeType upgradeType;
+    public CardRarity rarity;
 
-    //當你要在程式中「創造新卡牌」時，負責把資料填進去的公式
+    // 只有特殊卡會使用
+    public SpecialCardType specialCardType;
+
+    public float flatValue;             // 基礎直加值
+    public float multiplierValue;       // 百分比乘算值
+
+
+    // 建立一張新的卡牌時
+    // 負責把所有卡牌資料存進 UpgradeCard
     public UpgradeCard(
-        string cardName,                //卡牌名稱
-        string description,             //卡牌敘述
-        CardCategory category,          //指定這張卡的類別（屬性增長卡或特殊卡）
-        UpgradeType upgradeType,        //只有屬性卡才會有對應的屬性，特殊卡不會有
-        CardRarity rarity,              //只有屬性卡才會有稀有度，特殊卡不會有
-        float flatValue,                //只有屬性卡才會有基礎直加值，其他預設為0f
-        float multiplierValue = 0f      //只有屬性神話卡才會有特別成算區，其他預設為0f
+        string cardName,
+        string description,
+        CardCategory category,
+        UpgradeType upgradeType,
+        CardRarity rarity,
+        float flatValue,
+        float multiplierValue = 0f,
+        SpecialCardType specialCardType = SpecialCardType.None
     )
-    //將抽到的所有變數指定在這個物件顯示
     {
         this.cardName = cardName;
         this.description = description;
         this.category = category;
+
         this.upgradeType = upgradeType;
         this.rarity = rarity;
+
         this.flatValue = flatValue;
         this.multiplierValue = multiplierValue;
+
+        this.specialCardType = specialCardType;
     }
 }

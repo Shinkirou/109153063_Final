@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
 public class UpgradeManager : MonoBehaviour
@@ -19,9 +18,24 @@ public class UpgradeManager : MonoBehaviour
     public TMP_Text cardText2;
     public TMP_Text cardText3;
 
-    [Header("特殊卡設定")]
+    [Header("幸運牌設定")]
     [Range(0f, 100f)]
     public float luckCardChance = 15f;
+
+
+    [Header("神話卡設定")]
+
+    [Tooltip("沒有任何幸運等級時，每個卡位抽到神話卡的基礎機率")]
+    [Range(0f, 100f)]
+    public float baseMythicCardChance = 1.5f;
+
+    [Tooltip("每提升 1 級幸運，神話卡機率增加多少")]
+    [Range(0f, 10f)]
+    public float mythicChancePerLuckLevel = 0.25f;
+
+    [Tooltip("神話卡出現機率的最高上限")]
+    [Range(0f, 100f)]
+    public float maxMythicCardChance = 10f;
 
     //處發升級，會打開升級面板，並暫停遊戲
     public void ShowUpgradePanel()
@@ -35,79 +49,321 @@ public class UpgradeManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    //抽三張牌的方法，新增幸運卡的抽卡方式
+    //產生本次升級使用的三張卡牌
     public void GenerateUpgradeCards()
     {
-        currentCards.Clear();                                   //將上一輪升級卡牌清空
+        //清除上一輪升級留下的卡牌
+        currentCards.Clear();
 
-        //HashSet 不允許同一個 UpgradeType 重複存在，因此可以用來避免同一輪出現兩張相同能力卡。
-        HashSet<UpgradeType> selectedTypes = new HashSet<UpgradeType>();
+        //HashSet 不允許相同的 UpgradeType 重複存在
+        //記錄本輪已經出現過的屬性類型
+        HashSet<UpgradeType> selectedAttributeTypes = new HashSet<UpgradeType>();
+        //紀錄本輪已經出現過的神話卡
+        HashSet<SpecialCardType> selectedMythicTypes = new HashSet<SpecialCardType>();
 
-        // =========================
-        // 1. 判定是否出現幸運牌
-        float luckCardRoll = Random.Range(0f, 100f);            //每次升級只進行一次幸運牌判定
-        // 15% 機率加入一張幸運牌
-        if (luckCardRoll < luckCardChance)                      //這裡可以調整幸運牌的出現機率，先設為 100% 方便測試
+        //依照固定流程產生卡牌
+        TryGenerateLuckCard();                                                      //嘗試產生幸運牌
+        FillRemainingCardSlots(selectedAttributeTypes, selectedMythicTypes);        //每一個卡位都會先判斷神話，失敗才產生一般屬性卡
+        ShuffleCurrentCards();                                                      //打亂本輪三張卡牌的位置
+        PrintCurrentCards();                                                        //在 Console 顯示本次抽卡結果       
+    }
+
+    //嘗試產生一張特殊幸運牌
+    void TryGenerateLuckCard()
+    {
+        //每次升級只進行一次幸運牌判定
+        float luckCardRoll = Random.Range(0f, 100f);
+
+        if (luckCardRoll < luckCardChance)
         {
             UpgradeCard luckCard = CreateLuckCard();
             currentCards.Add(luckCard);
 
-            Debug.Log($"本次升級抽中幸運牌，判定值：{luckCardRoll:0.00}"
+            Debug.Log(
+                $"本次升級抽中幸運牌，判定值：{luckCardRoll:0.00}"
             );
-        }
-        else
-        {
-            Debug.Log($"本次升級未抽中幸運牌，判定值：{luckCardRoll:0.00}"
-            );
+
+            return;
         }
 
-        // =========================
-        // 2. 用不重複屬性卡補滿三張
+        Debug.Log(
+            $"本次升級未抽中幸運牌，判定值：{luckCardRoll:0.00}"
+        );
+    }
+
+    //將剩餘卡位補滿到三張
+    void FillRemainingCardSlots(HashSet<UpgradeType> selectedAttributeTypes, HashSet<SpecialCardType> selectedMythicTypes)
+    {
         while (currentCards.Count < 3)
         {
-            UpgradeType randomType = GetRandomUpgradeType();    //隨機抽出一種能力
+            //每個剩餘卡位先獨立進行神話卡判定
+            if (ShouldGenerateMythicCard())
+            {
+                UpgradeCard mythicCard = CreateRandomMythicCard(selectedMythicTypes);
 
-            //如果本輪已經抽過這個能力，就使用 continue 回到 while 開頭重新抽。
-            if (selectedTypes.Contains(randomType))
+                if (mythicCard != null)
+                {
+                    currentCards.Add(mythicCard);
+                    continue;
+                }
+            }
+
+            //神話判定失敗時，產生一般屬性卡
+            UpgradeCard attributeCard = CreateRandomAttributeCard(selectedAttributeTypes);
+
+            if (attributeCard != null)
+            {
+                currentCards.Add(attributeCard);
+                continue;
+            }
+
+            //理論上不應該發生
+            //防止建立卡牌失敗時形成無限迴圈
+            Debug.LogError(
+                "無法建立神話卡或一般屬性卡，停止補牌。"
+            );
+
+            break;
+        }
+    }
+
+    //判斷目前卡位是否產生神話卡
+    bool ShouldGenerateMythicCard()
+    {
+        float finalMythicChance =
+            GetFinalMythicCardChance();
+
+        float roll =
+            Random.Range(0f, 100f);
+
+        bool success =
+            roll < finalMythicChance;
+
+        Debug.Log(
+            $"神話卡判定：" +
+            $"Luck Level {GetCurrentLuckLevel()} | " +
+            $"目前機率 {finalMythicChance:0.00}% | " +
+            $"判定值 {roll:0.00} | " +
+            $"結果：{(success ? "成功" : "失敗")}"
+        );
+
+        return success;
+    }
+
+
+    //計算目前最終神話卡機率
+    float GetFinalMythicCardChance()
+    {
+        int luckLevel =
+            GetCurrentLuckLevel();
+
+        float finalChance =
+            baseMythicCardChance
+            + luckLevel * mythicChancePerLuckLevel;
+
+        return Mathf.Clamp(
+            finalChance,
+            0f,
+            maxMythicCardChance
+        );
+    }
+
+
+    //安全取得目前玩家的幸運等級
+    int GetCurrentLuckLevel()
+    {
+        if (playerStats == null)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(
+            playerStats.luckLevel,
+            0
+        );
+    }
+
+    //建立一張本輪尚未出現的一般屬性卡
+    UpgradeCard CreateRandomAttributeCard( HashSet<UpgradeType> selectedAttributeTypes)
+    {
+        //UpgradeType 總數目前大於三張卡位
+        //因此正常情況一定能找到未重複的屬性
+        int safetyCounter = 0;
+        int maxAttempts = 100;
+
+        while (safetyCounter < maxAttempts)
+        {
+            safetyCounter++;
+
+            UpgradeType randomType =
+                GetRandomUpgradeType();
+
+            //本輪已經有相同屬性，就重新抽取
+            if (selectedAttributeTypes.Contains(randomType))
             {
                 continue;
             }
-            
-            selectedTypes.Add(randomType);                      //記錄這個能力已經出現過    
-            CardRarity randomRarity = GetRandomRarity();        //再獨立決定這張卡的品質
-            UpgradeCard attributeCard =
-                CreateCardByTypeAndRarity(
-                    randomType,
-                    randomRarity
-                );                                              //用能力類型與品質組裝卡牌
 
-            currentCards.Add(attributeCard);
+            selectedAttributeTypes.Add(randomType);
+
+            CardRarity randomRarity = GetRandomRarity();
+
+            return CreateCardByTypeAndRarity(
+                randomType,
+                randomRarity
+            );
         }
 
-        // =========================
-        // 3. 打亂三張卡牌的位置
-        ShuffleCurrentCards();
+        Debug.LogError(
+            "建立一般屬性卡失敗：" +
+            "嘗試次數已超過安全上限。"
+        );
 
-        //將抽到的卡牌順序打亂，避免幸運牌出現在第一格
-        void ShuffleCurrentCards()
-        {
-            for (int i = 0; i < currentCards.Count; i++)
+        return null;
+    }
+
+    //建立一張本輪尚未出現的神話卡
+    UpgradeCard CreateRandomMythicCard(HashSet<SpecialCardType> selectedMythicTypes)
+    {
+        //只把四種神話卡加入候選清單
+        //不包含 None 和 Luck
+        List<SpecialCardType> availableMythicTypes =
+            new List<SpecialCardType>
             {
-                int randomIndex = Random.Range(i, currentCards.Count);
+            SpecialCardType.MythicCombat,
+            SpecialCardType.MythicDefense,
+            SpecialCardType.MythicCritical,
+            SpecialCardType.MythicSurvival
+            };
 
-                UpgradeCard tempCard = currentCards[i];
-                currentCards[i] = currentCards[randomIndex];
-                currentCards[randomIndex] = tempCard;
-            }
+        //移除本輪已經出現過的神話類型
+        availableMythicTypes.RemoveAll(
+            type => selectedMythicTypes.Contains(type)
+        );
+
+        //已經沒有可用神話卡
+        if (availableMythicTypes.Count == 0)
+        {
+            Debug.LogWarning(
+                "本輪所有神話卡都已經出現，" +
+                "無法再產生不重複神話卡。"
+            );
+
+            return null;
         }
 
+        //從剩餘神話卡中等機率選一張
+        int randomIndex =
+            Random.Range(
+                0,
+                availableMythicTypes.Count
+            );
 
-        // =========================
-        // 4. 在 Console 顯示抽卡結果
+        SpecialCardType selectedType =
+            availableMythicTypes[randomIndex];
+
+        //紀錄本輪已經出現
+        selectedMythicTypes.Add(selectedType);
+
+        return CreateMythicCard(selectedType);
+    }
+
+    // 根據神話類型建立對應神話卡
+    UpgradeCard CreateMythicCard(SpecialCardType mythicType)
+    {
+        switch (mythicType)
+        {
+            case SpecialCardType.MythicCombat:
+                return new UpgradeCard(
+                    "戰鬥本能",
+                    "攻擊力、攻擊距離、攻擊速度\n" +
+                    "最終提升 5%",
+                    CardCategory.Special,
+
+                    // 特殊卡不使用一般屬性欄位
+                    UpgradeType.Damage,
+                    CardRarity.Common,
+
+                    0f,
+                    0f,
+                    SpecialCardType.MythicCombat
+                );
+
+            case SpecialCardType.MythicDefense:
+                return new UpgradeCard(
+                    "鋼鐵之軀",
+                    "最大生命、防禦最終提升 10%\n" +
+                    "移動速度最終降低 10%",
+                    CardCategory.Special,
+
+                    UpgradeType.Damage,
+                    CardRarity.Common,
+
+                    0f,
+                    0f,
+                    SpecialCardType.MythicDefense
+                );
+
+            case SpecialCardType.MythicCritical:
+                return new UpgradeCard(
+                    "致命一擊",
+                    "暴擊率增加 5 個百分點\n" +
+                    "最終暴擊傷害提升 10%",
+                    CardCategory.Special,
+
+                    UpgradeType.Damage,
+                    CardRarity.Common,
+
+                    0f,
+                    0f,
+                    SpecialCardType.MythicCritical
+                );
+
+            case SpecialCardType.MythicSurvival:
+                return new UpgradeCard(
+                    "鮮血追獵",
+                    "吸血增加 5 個百分點\n" +
+                    "移動速度最終提升 10%",
+                    CardCategory.Special,
+
+                    UpgradeType.Damage,
+                    CardRarity.Common,
+
+                    0f,
+                    0f,
+                    SpecialCardType.MythicSurvival
+                );
+
+            default:
+                Debug.LogError(
+                    $"無法建立未知神話卡：{mythicType}"
+                );
+
+                return null;
+        }
+    }
+
+    //打亂本輪三張卡牌的位置
+    void ShuffleCurrentCards()
+    {
+        for (int i = 0; i < currentCards.Count; i++)
+        {
+            int randomIndex = Random.Range(i, currentCards.Count);
+
+            UpgradeCard tempCard = currentCards[i];
+            currentCards[i] = currentCards[randomIndex];
+            currentCards[randomIndex] = tempCard;
+        }
+    }
+
+    //在 Console 顯示本輪抽卡結果
+    void PrintCurrentCards()
+    {
         for (int i = 0; i < currentCards.Count; i++)
         {
             UpgradeCard card = currentCards[i];
 
+            //特殊卡沒有一般品質顯示
             if (card.category == CardCategory.Special)
             {
                 Debug.Log(
@@ -116,17 +372,18 @@ public class UpgradeManager : MonoBehaviour
                     $"{card.cardName} / " +
                     $"{card.description}"
                 );
+
+                continue;
             }
-            else
-            {
-                Debug.Log(
-                    $"第 {i + 1} 張卡：" +
-                    $"{card.category} / " +
-                    $"{card.rarity} / " +
-                    $"{card.cardName} / " +
-                    $"{card.description}"
-                );
-            }
+
+            //一般屬性卡顯示品質、名稱與描述
+            Debug.Log(
+                $"第 {i + 1} 張卡：" +
+                $"{card.category} / " +
+                $"{card.rarity} / " +
+                $"{card.cardName} / " +
+                $"{card.description}"
+            );
         }
     }
 
@@ -141,13 +398,16 @@ public class UpgradeManager : MonoBehaviour
             description,
             CardCategory.Special,
 
-            //特殊卡目前不使用這兩個欄位
-            //先填入預設值，之後程式會依 category 判斷
+            // 特殊卡不使用 UpgradeType 與 CardRarity
+            // 目前先放入預設值
             UpgradeType.Damage,
             CardRarity.Common,
 
             1f,
-            0f
+            0f,
+
+            // 明確指定這是一張幸運牌
+            SpecialCardType.Luck
         );
     }
 
@@ -161,60 +421,43 @@ public class UpgradeManager : MonoBehaviour
         return (UpgradeType)randomIndex;
     }
 
-    //決定卡牌品質機率
+    //根據幸運等級決定一般屬性卡品質
     CardRarity GetRandomRarity()
     {
-        int luckLevel = 0;
+        int luckLevel = GetCurrentLuckLevel();
 
-        if (playerStats != null)
-        {
-            luckLevel = playerStats.luckLevel;
-        }
+        //新的一般品質權重
+        float commonWeight = 27f - luckLevel * 1.5f;
 
-        //初始權重，抽到的稀有等級按照這個比例分配，總和為 121
-        float commonWeight = 81f;
-        float rareWeight = 27f;
-        float epicWeight = 9f;
-        float legendaryWeight = 3f;
-        float mythicWeight = 1f;
+        float rareWeight = 9f + luckLevel * 0.8f;
 
-        //每提升 1 級 luckLevel，調整各品質權重
-        commonWeight -= luckLevel * 4f;
-        rareWeight += luckLevel * 2f;
-        epicWeight += luckLevel * 1.2f;
-        legendaryWeight += luckLevel * 0.5f;
-        mythicWeight += luckLevel * 0.3f;
+        float epicWeight = 3f + luckLevel * 0.4f;
 
-        //防止普通權重變成負數
-        commonWeight = Mathf.Max(commonWeight, 10f);
+        float legendaryWeight = 1f + luckLevel * 0.2f;
 
-        //計算目前所有品質的總權重
+        // Luck 18 之後，普通牌權重允許歸零
+        // 但不允許變成負數
+        commonWeight =
+            Mathf.Max(commonWeight, 0f);
+
         float totalWeight =
-            commonWeight +
-            rareWeight +
-            epicWeight +
-            legendaryWeight +
-            mythicWeight;
+            commonWeight
+            + rareWeight
+            + epicWeight
+            + legendaryWeight;
 
         Debug.Log(
+            $"一般品質權重 | " +
             $"Luck Level：{luckLevel} | " +
             $"普通：{commonWeight:0.0} | " +
             $"稀有：{rareWeight:0.0} | " +
             $"史詩：{epicWeight:0.0} | " +
-            $"傳說：{legendaryWeight:0.0} | " +
-            $"神話：{mythicWeight:0.0}"
+            $"傳說：{legendaryWeight:0.0}"
         );
 
-        //在 0 到總權重之間抽一個數字
         float roll = Random.Range(0f, totalWeight);
 
-        if (roll < mythicWeight)
-        {
-            return CardRarity.Mythic;
-        }
-
-        roll -= mythicWeight;
-
+        //由最高品質往下判斷
         if (roll < legendaryWeight)
         {
             return CardRarity.Legendary;
@@ -235,7 +478,6 @@ public class UpgradeManager : MonoBehaviour
         }
 
         return CardRarity.Common;
-        
     }
 
     //依照上面已決定好的稀有度 類型，得到的回傳值來製作卡片，組裝階段
@@ -280,9 +522,6 @@ public class UpgradeManager : MonoBehaviour
             case CardRarity.Legendary:
                 return 5f;
 
-            case CardRarity.Mythic:
-                return 3f;
-
             default:
                 return 1f;
         }
@@ -291,11 +530,6 @@ public class UpgradeManager : MonoBehaviour
     //只有神話才享有的百分比加成
     float GetMultiplierValueByRarity(CardRarity rarity)
     {
-        if (rarity == CardRarity.Mythic)
-        {
-            return 0.05f;
-        }
-
         return 0f;
     }
 
@@ -455,10 +689,30 @@ public class UpgradeManager : MonoBehaviour
 
             if (card.category == CardCategory.Special)
             {
-                textComponent.text =
-                    "【命運眷顧】\n" +
-                    $"聽說運氣會變得更好..." 
-                    ;         
+                switch (card.specialCardType)
+                {
+                    case SpecialCardType.Luck:
+                        textComponent.text =
+                            "【命運眷顧】\n" +
+                            "聽說運氣會變得更好...";
+                        break;
+
+                    case SpecialCardType.MythicCombat:
+                    case SpecialCardType.MythicDefense:
+                    case SpecialCardType.MythicCritical:
+                    case SpecialCardType.MythicSurvival:
+                        textComponent.text =
+                            $"【神話】{card.cardName}\n" +
+                            card.description;
+                        break;
+
+                    default:
+                        textComponent.text =
+                            "【未知特殊卡】\n" +
+                            card.description;
+                        break;
+                }
+
                 return;
             }
 
@@ -508,89 +762,234 @@ public class UpgradeManager : MonoBehaviour
     {
         switch (card.upgradeType)
         {
-            //選擇攻擊力卡牌時，會把卡片裡的 flatValue 加到玩家的攻擊力上，如果是神話卡還會額外加上 multiplierValue 的百分比加成
             case UpgradeType.Damage:
-                playerStats.AddFlatDamage((int)card.flatValue);
-
-                if (card.multiplierValue > 0f)
-                {
-                    playerStats.AddDamageMultiplier(card.multiplierValue);
-                }
-
+                ApplyDamageUpgrade(card);
                 break;
 
-            //選擇攻擊距離卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的攻擊距離上
             case UpgradeType.AttackRange:
-                {
-                    float attackRangePercent = card.flatValue * 0.05f;
-                    playerStats.AddAttackRangeMultiplier(attackRangePercent);
+                ApplyAttackRangeUpgrade(card);
+                break;
 
-                    break;
-                }
-
-
-            //選擇攻擊速度卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的攻擊速度上
             case UpgradeType.AttackSpeed:
-                {
-                    float attackSpeedPercent =card.flatValue * 0.05f;
-                    playerStats.AddAttackSpeedMultiplier(attackSpeedPercent);
+                ApplyAttackSpeedUpgrade(card);
+                break;
 
-                    break;
-                }
-
-            //選擇暴擊率卡牌時，會把卡片裡的 flatValue 乘上 0.01f，然後加到玩家的暴擊率上
             case UpgradeType.CriticalRate:
-                playerStats.AddCriticalRate(card.flatValue * 0.01f);
+                ApplyCriticalRateUpgrade(card);
                 break;
 
-            //選擇暴擊傷害卡牌時，會把卡片裡的 flatValue 乘上 0.1f，然後加到玩家的暴擊傷害上
             case UpgradeType.CriticalDamage:
-                playerStats.AddCriticalDamage(card.flatValue * 0.1f);
+                ApplyCriticalDamageUpgrade(card);
                 break;
 
-            //選擇最大生命卡牌時，會把卡片裡的 flatValue 乘上 10，然後加到玩家的最大生命上
             case UpgradeType.MaxHP:
-                playerStats.AddMaxHP((int)(card.flatValue * 10));
+                ApplyMaxHPUpgrade(card);
                 break;
 
-            //選擇移動速度卡牌時，會把卡片裡的 flatValue 乘上 0.05f，然後加到玩家的移動速度上
             case UpgradeType.MoveSpeed:
-                {
-                    float moveSpeedPercent = card.flatValue * 0.05f;
-                    playerStats.AddMoveSpeedMultiplier(moveSpeedPercent);
+                ApplyMoveSpeedUpgrade(card);
+                break;
 
-                    break;
-                }
-
-            //選擇吸血卡牌時，會把卡片裡的 flatValue 乘上 0.01f，然後加到玩家的吸血上
             case UpgradeType.LifeSteal:
-                playerStats.AddLifeSteal(card.flatValue * 0.01f);
+                ApplyLifeStealUpgrade(card);
                 break;
 
-            //選擇防禦卡牌時，會把卡片裡的 flatValue 乘上 3，然後加到玩家的防禦上
             case UpgradeType.Armor:
-                playerStats.AddArmor(card.flatValue * 3);
+                ApplyArmorUpgrade(card);
                 break;
+
+            default:
+                Debug.LogWarning(
+                    $"尚未處理這個屬性卡效果：{card.upgradeType}"
+                );
+                break;
+        }
+
+        //套用攻擊力卡牌效果
+        void ApplyDamageUpgrade(UpgradeCard upgradeCard)
+        {
+            playerStats.AddFlatDamage((int)upgradeCard.flatValue);
+
+            if (upgradeCard.multiplierValue > 0f)
+            {
+                playerStats.AddDamageMultiplier(
+                    upgradeCard.multiplierValue
+                );
+            }
+        }
+
+        //套用攻擊距離卡牌效果
+        void ApplyAttackRangeUpgrade(UpgradeCard upgradeCard)
+        {
+            float attackRangePercent =
+                upgradeCard.flatValue * 0.05f;
+
+            playerStats.AddAttackRangeMultiplier(
+                attackRangePercent
+            );
+        }
+
+        //套用攻擊速度卡牌效果
+        void ApplyAttackSpeedUpgrade(UpgradeCard upgradeCard)
+        {
+            float attackSpeedPercent =
+                upgradeCard.flatValue * 0.05f;
+
+            playerStats.AddAttackSpeedMultiplier(
+                attackSpeedPercent
+            );
+        }
+
+        //套用暴擊率卡牌效果
+        void ApplyCriticalRateUpgrade(UpgradeCard upgradeCard)
+        {
+            float criticalRatePercent =
+                upgradeCard.flatValue * 0.01f;
+
+            playerStats.AddCriticalRate(
+                criticalRatePercent
+            );
+        }
+
+        //套用暴擊傷害卡牌效果
+        void ApplyCriticalDamageUpgrade(UpgradeCard upgradeCard)
+        {
+            float criticalDamagePercent =
+                upgradeCard.flatValue * 0.1f;
+
+            playerStats.AddCriticalDamage(
+                criticalDamagePercent
+            );
+        }
+
+        //套用最大生命卡牌效果
+        void ApplyMaxHPUpgrade(UpgradeCard upgradeCard)
+        {
+            int maxHPAmount =
+                (int)(upgradeCard.flatValue * 10f);
+
+            playerStats.AddMaxHP(
+                maxHPAmount
+            );
+        }
+
+        //套用移動速度卡牌效果
+        void ApplyMoveSpeedUpgrade(UpgradeCard upgradeCard)
+        {
+            float moveSpeedPercent =
+                upgradeCard.flatValue * 0.05f;
+
+            playerStats.AddMoveSpeedMultiplier(
+                moveSpeedPercent
+            );
+        }
+
+        //套用吸血卡牌效果
+        void ApplyLifeStealUpgrade(UpgradeCard upgradeCard)
+        {
+            float lifeStealPercent =
+                upgradeCard.flatValue * 0.01f;
+
+            playerStats.AddLifeSteal(
+                lifeStealPercent
+            );
+        }
+
+        //套用防禦卡牌效果
+        void ApplyArmorUpgrade(UpgradeCard upgradeCard)
+        {
+            float armorAmount =
+                upgradeCard.flatValue * 3f;
+
+            playerStats.AddArmor(
+                armorAmount
+            );
         }
     }
 
-    //負責處理特殊卡的效果，像是幸運牌
+    //負責處理幸運牌與四種神話卡的效果
     void ApplySpecialCardEffect(UpgradeCard card)
     {
-        if (card.cardName == "幸運牌")
+        switch (card.specialCardType)
         {
-            playerStats.AddLuckLevel(1);
+            //幸運牌：幸運等級 +3
+            case SpecialCardType.Luck:
+                playerStats.AddLuckLevel(3);
 
-            Debug.Log(
-                $"幸運牌生效，目前幸運等級：{playerStats.luckLevel}"
-            );
+                Debug.Log(
+                    $"幸運牌生效，目前幸運等級：" +
+                    $"{playerStats.luckLevel}"
+                );
+                break;
 
-            return;
+
+            //戰鬥本能：
+            //攻擊力、攻擊距離、攻擊速度最終提升 5%
+            case SpecialCardType.MythicCombat:
+                playerStats.AddDamageMultiplier(0.05f);
+                playerStats.AddAttackRangeMultiplier(0.05f);
+                playerStats.AddAttackSpeedMultiplier(0.05f);
+
+                Debug.Log(
+                    "神話卡【戰鬥本能】生效：" +
+                    "攻擊力、攻擊距離、攻擊速度最終提升 5%"
+                );
+                break;
+
+
+            //鋼鐵之軀：
+            //最大生命、防禦最終提升 10%
+            //移動速度最終降低 10%
+            case SpecialCardType.MythicDefense:
+                playerStats.AddMaxHPMultiplier(0.10f);
+                playerStats.AddArmorMultiplier(0.10f);
+                playerStats.AddMoveSpeedMultiplier(-0.10f);
+
+                Debug.Log(
+                    "神話卡【鋼鐵之軀】生效：" +
+                    "最大生命、防禦最終提升 10%，" +
+                    "移動速度最終降低 10%"
+                );
+                break;
+
+
+            //致命一擊：
+            //暴擊率增加 5 個百分點
+            //最終暴擊傷害提升 10%
+            case SpecialCardType.MythicCritical:
+                playerStats.AddCriticalRate(0.05f);
+                playerStats.AddCriticalDamageMultiplier(0.10f);
+
+                Debug.Log(
+                    "神話卡【致命一擊】生效：" +
+                    "暴擊率增加 5 個百分點，" +
+                    "最終暴擊傷害提升 10%"
+                );
+                break;
+
+
+            //鮮血追獵：
+            //吸血增加 5 個百分點
+            //移動速度最終提升 10%
+            case SpecialCardType.MythicSurvival:
+                playerStats.AddLifeSteal(0.05f);
+                playerStats.AddMoveSpeedMultiplier(0.10f);
+
+                Debug.Log(
+                    "神話卡【鮮血追獵】生效：" +
+                    "吸血增加 5 個百分點，" +
+                    "移動速度最終提升 10%"
+                );
+                break;
+
+
+            default:
+                Debug.LogWarning(
+                    $"尚未處理這張特殊卡：" +
+                    $"{card.specialCardType} / {card.cardName}"
+                );
+                break;
         }
-
-        Debug.LogWarning(
-            $"尚未處理這張特殊卡：{card.cardName}"
-        );
     }
 
     //關閉升級面板，並恢復遊戲時間
