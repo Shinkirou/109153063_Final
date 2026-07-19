@@ -9,14 +9,61 @@ public class Bullet : MonoBehaviour
 
     private Transform target;
 
-    public void SetTarget(Transform newTarget, int newDamage)
+
+    //這顆子彈建立當下取得的暴擊屬性
+    private float criticalRate;
+    private float criticalDamage;
+
+    [Header("暴擊視覺效果")]
+    public Renderer bulletRenderer;
+    public Color normalColor = Color.white;
+    public Color criticalColor = Color.yellow;
+
+    //這顆子彈建立當下取得的吸血屬性
+    private float lifeStealRate;
+    private PlayerHealth playerHealth;
+
+    private bool isCritical;
+
+    //設定子彈目標與攻擊屬性
+    public void SetTarget(Transform newTarget, int newDamage, 
+        float newCriticalRate, float newCriticalDamage, 
+        float newLifeStealRate, PlayerHealth newPlayerHealth)
     {
-        target = newTarget;
-        damage = newDamage;
+        target = newTarget;                         //設定子彈的攻擊目標
+        damage = newDamage;                         //設定子彈的傷害值
+        criticalRate = newCriticalRate;             //設定子彈的暴擊率
+        criticalDamage = newCriticalDamage;         //設定子彈的暴擊傷害
+
+        lifeStealRate = newLifeStealRate;           //設定子彈的吸血率
+        playerHealth = newPlayerHealth;             //設定子彈的吸血對象
+
+        //子彈生成時就決定這顆子彈是否暴擊
+        isCritical = Random.value < criticalRate;
+
+        UpdateBulletColor();
+    }
+
+    //根據這顆子彈是否暴擊，更新子彈顏色
+    private void UpdateBulletColor()
+    {
+        if (bulletRenderer == null)
+        {
+            return;
+        }
+
+        bulletRenderer.material.color = isCritical ? criticalColor : normalColor;
     }
 
     void Start()
     {
+        if (bulletRenderer == null)
+        {
+            bulletRenderer = GetComponent<Renderer>();
+        }
+
+        UpdateBulletColor();
+
         Destroy(gameObject, lifeTime);
     }
 
@@ -40,21 +87,66 @@ public class Bullet : MonoBehaviour
     {
 
         EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+
+        //不處理玩家碰撞
         if (other.CompareTag("Player"))
         {
             return;
         }
 
-        //Debug.Log("碰到：" + other.name);
-
+        //碰到的物件不是敵人
         if (enemyHealth == null)
         {
             return;
         }
 
-        //Debug.Log("成功造成傷害");
-        enemyHealth.TakeDamage(damage);
+        //判定暴擊並計算最終傷害
+
+
+        //計算這次攻擊的最終傷害
+        int finalDamage = CalculateDamage();
+
+        enemyHealth.TakeDamage(finalDamage);
+
+        //根據這次實際造成的傷害進行吸血
+        if (playerHealth != null)
+        {
+            playerHealth.ApplyLifeSteal(
+                finalDamage,
+                lifeStealRate
+            );
+        }
+
+        Debug.Log(
+            $"子彈命中敵人：" +
+            $"基礎傷害 {damage}，" +
+            $"暴擊率 {criticalRate * 100f:0.#}%，" +
+            $"暴擊傷害 {criticalDamage * 100f:0.#}%，" +
+            $"是否暴擊：{isCritical}，" +
+            $"最終傷害 {finalDamage}"
+        );
 
         Destroy(gameObject);
+
+        //Debug.Log("成功造成傷害");
+        enemyHealth.TakeDamage(damage);
+    }
+
+    //判定暴擊並計算最終傷害
+    private int CalculateDamage()
+    {
+        //這顆子彈不是暴擊時，直接造成普通傷害
+        if (!isCritical)
+        {
+            return damage;
+        }
+
+        //暴擊傷害 = 普通傷害 × 暴擊傷害倍率
+        float criticalDamageResult = damage * criticalDamage;
+
+        //維持整數傷害，將小數無條件捨去
+        int finalDamage = Mathf.FloorToInt(criticalDamageResult);
+
+        return Mathf.Max(finalDamage, 1);
     }
 }

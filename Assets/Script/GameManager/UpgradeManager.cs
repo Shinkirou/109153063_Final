@@ -401,10 +401,7 @@ public class UpgradeManager : MonoBehaviour
             // 特殊卡不使用 UpgradeType 與 CardRarity
             // 目前先放入預設值
             UpgradeType.Damage,
-            CardRarity.Common,
-
-            1f,
-            0f,
+            CardRarity.Common, 1f, 0f,
 
             // 明確指定這是一張幸運牌
             SpecialCardType.Luck
@@ -645,7 +642,7 @@ public class UpgradeManager : MonoBehaviour
 
             case UpgradeType.Armor:
                 description =
-                    $"防禦 +{flatValue:0.#}";
+                    $"防禦 +{flatValue * 3f:0.#}";
                 break;
 
             default:
@@ -865,12 +862,23 @@ public class UpgradeManager : MonoBehaviour
         //套用最大生命卡牌效果
         void ApplyMaxHPUpgrade(UpgradeCard upgradeCard)
         {
-            int maxHPAmount =
-                (int)(upgradeCard.flatValue * 10f);
+            int maxHPAmount = (int)(upgradeCard.flatValue * 10f);
 
-            playerStats.AddMaxHP(
-                maxHPAmount
-            );
+            playerStats.AddMaxHP(maxHPAmount);
+
+            PlayerHealth playerHealth =
+                playerStats.GetComponent<PlayerHealth>();
+
+            if (playerHealth != null)
+            {
+                playerHealth.RefreshMaxHP(true);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "套用最大生命卡後找不到 PlayerHealth。"
+                );
+            }
         }
 
         //套用移動速度卡牌效果
@@ -944,6 +952,20 @@ public class UpgradeManager : MonoBehaviour
                 playerStats.AddMaxHPMultiplier(0.10f);
                 playerStats.AddArmorMultiplier(0.10f);
                 playerStats.AddMoveSpeedMultiplier(-0.10f);
+
+                PlayerHealth playerHealth =
+                    playerStats.GetComponent<PlayerHealth>();
+
+                if (playerHealth != null)
+                {
+                    playerHealth.RefreshMaxHP(true);
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "套用鋼鐵之軀後找不到 PlayerHealth。"
+                    );
+                }
 
                 Debug.Log(
                     "神話卡【鋼鐵之軀】生效：" +

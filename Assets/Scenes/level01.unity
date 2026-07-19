@@ -485,10 +485,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 656edfc57afbdb84b8f16c81554b6bf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHP: 100
+  fallbackMaxHP: 100
   hpText: {fileID: 1734293787}
   hpFillImage: {fileID: 937535095}
-  invincibleTime: 0.5
+  invincibleTime: 0.4
   playerRenderer: {fileID: 59086943}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   damageColor: {r: 1, g: 0, b: 0, a: 1}

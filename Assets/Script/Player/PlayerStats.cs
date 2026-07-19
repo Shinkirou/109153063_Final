@@ -95,7 +95,7 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
-    // 每次攻擊之間需要等待的秒數
+    //每次攻擊之間需要等待的秒數
     public float AttackInterval
     {
         get

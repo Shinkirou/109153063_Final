@@ -156,3 +156,6 @@ MonoBehaviour:
   speed: 8
   damage: 3
   lifeTime: 10
+  bulletRenderer: {fileID: 5685759027050873647}
+  normalColor: {r: 0.10980393, g: 0.15294118, b: 0.61960787, a: 1}
+  criticalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

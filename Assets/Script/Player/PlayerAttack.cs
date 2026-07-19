@@ -6,7 +6,9 @@ public class PlayerAttack : MonoBehaviour
     public GameObject bulletPrefab;
     public Transform firePoint;
 
-    private PlayerStats playerStats;
+    private PlayerStats playerStats;        //用來取得玩家的攻擊屬性
+    private PlayerHealth playerHealth;      //用來取得玩家的吸血屬性
+
 
     //用來累積距離上次攻擊經過了多少時間
     private float attackTimer = 0f;
@@ -14,6 +16,7 @@ public class PlayerAttack : MonoBehaviour
     void Start()
     {
         playerStats = GetComponent<PlayerStats>();
+        playerHealth = GetComponent<PlayerHealth>();
 
         if (playerStats == null)
         {
@@ -112,8 +115,9 @@ public class PlayerAttack : MonoBehaviour
         if (bulletScript != null)
         {
             bulletScript.SetTarget(
-                target.transform,
-                playerStats.FinalDamage
+                target.transform, playerStats.FinalDamage,
+                playerStats.criticalRate, playerStats.FinalCriticalDamage,
+                playerStats.lifeSteal, playerHealth
             );
         }
         else
