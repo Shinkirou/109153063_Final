@@ -36,6 +36,16 @@ public class PlayerLevel : MonoBehaviour
         }
     }
 
+    public int GetSuperGemExpAmount()
+    {
+        return Mathf.Max(
+            Mathf.RoundToInt(
+                expToNextLevel * 0.25f
+            ),
+            1
+        );
+    }
+
     public void AddExp(int amount)
     {
         currentExp += amount;
@@ -70,8 +80,7 @@ public class PlayerLevel : MonoBehaviour
     {
         currentExp -= expToNextLevel;
         level++;
-
-        expToNextLevel += 5;
+        UpdateExpRequirement();
 
         Debug.Log("升級！目前等級：" + level);
 

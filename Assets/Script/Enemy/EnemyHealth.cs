@@ -2,23 +2,52 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
-    public GameObject expGemPrefab;                 //經驗值預製體
-
+    private EnemyDrop enemyDrop;
     private EnemyStats enemyStats;
-    private int currentHP; 
+    private int currentHP;
 
+    [Header("測試")]
+    [Tooltip("是否在 Console 顯示敵人的受傷與死亡資訊")]
+    public bool showEnemyHealthDebug = false;
 
     void Start()
     {
-        enemyStats = GetComponent<EnemyStats>();    //取得怪物數值
-        currentHP = enemyStats.maxHP;               //將怪物生命加入計算
+        //取得怪物數值
+        enemyStats = GetComponent<EnemyStats>();
+        //取得怪物掉落物件
+        enemyDrop = GetComponent<EnemyDrop>();      
+
+        if (enemyStats == null)
+        {
+            Debug.LogError(
+                $"{gameObject.name} 找不到 EnemyStats。"
+            );
+
+            enabled = false;
+            return;
+        }
+
+        //將怪物最大生命加入目前生命計算
+        currentHP = enemyStats.maxHP;               
     }
 
     public void TakeDamage(int damage)
     {
+        if (damage <= 0)
+        {
+            return;
+        }
+
         currentHP -= damage;
 
-        Debug.Log(enemyStats.enemyName + " 受到傷害，目前血量：" + currentHP);
+        if (showEnemyHealthDebug)
+        {
+            Debug.Log(
+                $"{enemyStats.enemyName} 受到傷害，" +
+                $"本次傷害：{damage}，" +
+                $"目前血量：{currentHP} / {enemyStats.maxHP}"
+            );
+        }
 
         if (currentHP <= 0)
         {
@@ -28,15 +57,25 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
-        if (expGemPrefab != null)
+        //由 EnemyDrop 統一處理經驗球與未來其他掉落物
+        if (enemyDrop != null)
         {
-            Instantiate(
-                expGemPrefab,
-                transform.position,
-                Quaternion.identity
+            enemyDrop.DropRewards();
+        }
+
+        else
+        {
+            Debug.LogWarning(
+                $"{gameObject.name} 找不到 EnemyDrop，" +
+                $"本次死亡不會產生掉落物。"
             );
         }
-        Debug.Log(enemyStats.enemyName + " 死亡");
+
+        if (showEnemyHealthDebug)
+        {
+            Debug.Log($"{enemyStats.enemyName} 死亡");
+        }
+
         Destroy(gameObject);
     }
 }

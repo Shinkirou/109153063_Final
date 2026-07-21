@@ -33,6 +33,10 @@ public class PlayerHealth : MonoBehaviour
     [Header("吸血設定")]
     private float lifeStealRemainder = 0f;  //尚未累積滿 1 點的小數吸血量
 
+    [Header("測試")]
+    [Tooltip("是否在 Console 顯示玩家生命、受傷、回血與吸血資訊")]
+    public bool showHealthDebug = false;
+
     void Start()
     {
         //PlayerHealth 與 PlayerStats 應掛在同一個玩家物件上
@@ -65,7 +69,12 @@ public class PlayerHealth : MonoBehaviour
 
         UpdateHPUI();
 
-        Debug.Log($"玩家初始生命：{currentHP} / {currentMaxHP}");
+        if (showHealthDebug)
+        {
+            Debug.Log(
+                $"玩家初始生命：{currentHP} / {currentMaxHP}"
+            );
+        }
     }
 
     void UpdateHPUI()
@@ -111,10 +120,13 @@ public class PlayerHealth : MonoBehaviour
 
         UpdateHPUI();
 
-        Debug.Log(
-            $"最大生命更新：{oldMaxHP} → {currentMaxHP}，" +
-            $"目前生命：{currentHP} / {currentMaxHP}"
-        );
+        if (showHealthDebug)
+        {
+            Debug.Log(
+                $"最大生命更新：{oldMaxHP} → {currentMaxHP}，" +
+                $"目前生命：{currentHP} / {currentMaxHP}"
+            );
+        }
     }
 
     public void TakeDamage(int damage)
@@ -151,14 +163,17 @@ public class PlayerHealth : MonoBehaviour
 
         int reducedDamage = damage - finalDamage;
 
-        Debug.Log(
-            $"玩家受到傷害：" +
-            $"原始傷害 {damage}，" +
-            $"理論減傷率 {damageReductionPercent:0.#}%，" +
-            $"減少傷害 {reducedDamage} 點，" +
-            $"最終傷害 {finalDamage}，" +
-            $"剩餘生命 {currentHP} / {currentMaxHP}"
-        );
+        if (showHealthDebug)
+        {
+            Debug.Log(
+                $"玩家受到傷害：" +
+                $"原始傷害 {damage}，" +
+                $"理論減傷率 {damageReductionPercent:0.#}%，" +
+                $"減少傷害 {reducedDamage} 點，" +
+                $"最終傷害 {finalDamage}，" +
+                $"剩餘生命 {currentHP} / {currentMaxHP}"
+            );
+        }
 
         //生命歸零時死亡
         if (currentHP <= 0)
@@ -223,7 +238,10 @@ public class PlayerHealth : MonoBehaviour
 
         UpdateHPUI();
 
-        Debug.Log("玩家回復生命：" + amount + "，目前生命：" + currentHP);
+        if (showHealthDebug)
+        {
+            Debug.Log("玩家回復生命：" + amount + "，目前生命：" + currentHP);
+        }
     }
 
     //根據造成的實際傷害與吸血率進行回血
@@ -255,13 +273,16 @@ public class PlayerHealth : MonoBehaviour
 
         Heal(healAmount);
 
-        Debug.Log(
-            $"吸血生效：" +
-            $"造成傷害 {damageDealt}，" +
-            $"吸血率 {lifeStealRate * 100f:0.#}%，" +
-            $"回復生命 {healAmount}，" +
-            $"剩餘吸血累積 {lifeStealRemainder:0.##}"
-        );
+        if (showHealthDebug)
+        {
+            Debug.Log(
+                $"吸血生效：" +
+                $"造成傷害 {damageDealt}，" +
+                $"吸血率 {lifeStealRate * 100f:0.#}%，" +
+                $"回復生命 {healAmount}，" +
+                $"剩餘吸血累積 {lifeStealRemainder:0.##}"
+            );
+        }
     }
 
     //玩家無敵判定

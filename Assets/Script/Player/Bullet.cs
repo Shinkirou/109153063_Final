@@ -18,42 +18,15 @@ public class Bullet : MonoBehaviour
     public Renderer bulletRenderer;
     public Color normalColor = Color.white;
     public Color criticalColor = Color.yellow;
+    private bool isCritical;
+
+    [Header("測試")]
+    [Tooltip("是否在 Console 顯示每顆子彈的命中資訊")]
+    public bool showHitEnemyDebug = false;
 
     //這顆子彈建立當下取得的吸血屬性
     private float lifeStealRate;
     private PlayerHealth playerHealth;
-
-    private bool isCritical;
-
-    //設定子彈目標與攻擊屬性
-    public void SetTarget(Transform newTarget, int newDamage, 
-        float newCriticalRate, float newCriticalDamage, 
-        float newLifeStealRate, PlayerHealth newPlayerHealth)
-    {
-        target = newTarget;                         //設定子彈的攻擊目標
-        damage = newDamage;                         //設定子彈的傷害值
-        criticalRate = newCriticalRate;             //設定子彈的暴擊率
-        criticalDamage = newCriticalDamage;         //設定子彈的暴擊傷害
-
-        lifeStealRate = newLifeStealRate;           //設定子彈的吸血率
-        playerHealth = newPlayerHealth;             //設定子彈的吸血對象
-
-        //子彈生成時就決定這顆子彈是否暴擊
-        isCritical = Random.value < criticalRate;
-
-        UpdateBulletColor();
-    }
-
-    //根據這顆子彈是否暴擊，更新子彈顏色
-    private void UpdateBulletColor()
-    {
-        if (bulletRenderer == null)
-        {
-            return;
-        }
-
-        bulletRenderer.material.color = isCritical ? criticalColor : normalColor;
-    }
 
     void Start()
     {
@@ -83,6 +56,38 @@ public class Bullet : MonoBehaviour
         transform.position += direction * speed * Time.deltaTime;
     }
 
+    //設定子彈目標與攻擊屬性
+    public void SetTarget(
+        Transform newTarget, int newDamage, 
+        float newCriticalRate, float newCriticalDamage, 
+        float newLifeStealRate, PlayerHealth newPlayerHealth)
+    {
+        target = newTarget;                         //設定子彈的攻擊目標
+        damage = newDamage;                         //設定子彈的傷害值
+
+        criticalRate = newCriticalRate;             //設定子彈的暴擊率
+        criticalDamage = newCriticalDamage;         //設定子彈的暴擊傷害
+
+        lifeStealRate = newLifeStealRate;           //設定子彈的吸血率
+        playerHealth = newPlayerHealth;             //設定子彈的吸血對象
+
+        //子彈生成時就決定這顆子彈是否暴擊
+        isCritical = Random.value < criticalRate;
+
+        UpdateBulletColor();
+    }
+
+    //根據這顆子彈是否暴擊，更新子彈顏色
+    private void UpdateBulletColor()
+    {
+        if (bulletRenderer == null)
+        {
+            return;
+        }
+
+        bulletRenderer.material.color = isCritical ? criticalColor : normalColor;
+    }
+
     void OnTriggerEnter(Collider other)
     {
 
@@ -100,12 +105,10 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        //判定暴擊並計算最終傷害
-
-
         //計算這次攻擊的最終傷害
         int finalDamage = CalculateDamage();
 
+        //每顆子彈只造成一次傷害。
         enemyHealth.TakeDamage(finalDamage);
 
         //根據這次實際造成的傷害進行吸血
@@ -117,19 +120,19 @@ public class Bullet : MonoBehaviour
             );
         }
 
-        Debug.Log(
-            $"子彈命中敵人：" +
-            $"基礎傷害 {damage}，" +
-            $"暴擊率 {criticalRate * 100f:0.#}%，" +
-            $"暴擊傷害 {criticalDamage * 100f:0.#}%，" +
-            $"是否暴擊：{isCritical}，" +
-            $"最終傷害 {finalDamage}"
-        );
+        if (showHitEnemyDebug)
+        {
+            Debug.Log(
+                $"子彈命中敵人：" +
+                $"基礎傷害 {damage}，" +
+                $"暴擊率 {criticalRate * 100f:0.#}%，" +
+                $"暴擊傷害 {criticalDamage * 100f:0.#}%，" +
+                $"是否暴擊：{isCritical}，" +
+                $"最終傷害 {finalDamage}"
+            );
+        }
 
         Destroy(gameObject);
-
-        //Debug.Log("成功造成傷害");
-        enemyHealth.TakeDamage(damage);
     }
 
     //判定暴擊並計算最終傷害

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8755009098822054962}
   - component: {fileID: -2420294676876060137}
   m_Layer: 0
-  m_Name: EXPGem
+  m_Name: ExpGem_Large
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.3, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalScale: {x: 0.375, y: 0.375, z: 0.375}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -125,9 +125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 918a3ec86629f4447b20295af1e5d71e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExpGem
-  expValue: 1
+  gemType: 2
+  expValue: 10
   rotateSpeed: 90
   floatSpeed: 3
   floatHeight: 0.2
   pickupRange: 3
   magnetSpeed: 6
+  showExpDebug: 1

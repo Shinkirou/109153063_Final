@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 7330052967199910666}
   - component: {fileID: -7048938328560547764}
   - component: {fileID: 5738093203448691626}
+  - component: {fileID: 3929922129550926446}
   - component: {fileID: 810820944857315876}
   - component: {fileID: -1760930804255865504}
   m_Layer: 0
@@ -168,7 +169,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 732b3d94ed159bc4faa0e96372384740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  expGemPrefab: {fileID: 4545660833000066676, guid: 743f58f97cd2a784bb2af9de7e9388cf, type: 3}
+  showEnemyHealthDebug: 0
+--- !u!114 &3929922129550926446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7786551118608086645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82fb5d16053198946b9088f83f6d8c65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDrop
+  dropCountWeights:
+  - dropCount: 3
+    weight: 40
+  - dropCount: 4
+    weight: 40
+  - dropCount: 5
+    weight: 30
+  gemQualityWeights:
+  - quality: 0
+    gemPrefab: {fileID: 4545660833000066676, guid: 743f58f97cd2a784bb2af9de7e9388cf, type: 3}
+    weight: 70
+  - quality: 1
+    gemPrefab: {fileID: 4545660833000066676, guid: d902e71272f83b44788f99851d76e50a, type: 3}
+    weight: 22
+  - quality: 2
+    gemPrefab: {fileID: 4545660833000066676, guid: b1ee9c775b5c1314894ed9a218501296, type: 3}
+    weight: 7
+  - quality: 3
+    gemPrefab: {fileID: 4545660833000066676, guid: 43aae504a1364e948af606818200da6f, type: 3}
+    weight: 1
+  dropSpreadRadius: 0.8
+  showDropDebug: 0
+  smallWeightReductionPerLuck: 2
+  minimumSmallWeight: 15
+  mediumWeightBonusPerLuck: 1
+  largeWeightBonusPerLuck: 0.5
+  superWeightBonusPerLuck: 0.15
+  maximumSuperWeight: 10
 --- !u!65 &810820944857315876
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -202,4 +243,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e0b07ffb8b2d064c9524cbca38aac9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
-  attackInterval: 3
