@@ -455,17 +455,98 @@ MonoBehaviour:
       time: 1
       value: 5
       inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      outSlope: 2
+      tangentMode: 69
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 50
-      value: 1000
+      time: 2
+      value: 7
       inSlope: 2
+      outSlope: 3
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 3
+      value: 10
+      inSlope: 3
+      outSlope: 3.5282679
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 4.9839764
+      value: 17
+      inSlope: 3.5282679
+      outSlope: 6.5789165
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.18075456
+    - serializedVersion: 3
+      time: 10
+      value: 50
+      inSlope: 6.5789165
+      outSlope: 10
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.15853481
+      outWeight: 0.18525657
+    - serializedVersion: 3
+      time: 15
+      value: 100
+      inSlope: 10
+      outSlope: 10
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.026896013
+    - serializedVersion: 3
+      time: 20
+      value: 150
+      inSlope: 10
+      outSlope: 15
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.034551684
+    - serializedVersion: 3
+      time: 25
+      value: 225
+      inSlope: 15
+      outSlope: 15
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.04078331
+    - serializedVersion: 3
+      time: 30
+      value: 300
+      inSlope: 15
+      outSlope: 20
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.05311346
+    - serializedVersion: 3
+      time: 40
+      value: 500
+      inSlope: 20
+      outSlope: 20
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 50
+      value: 700
+      inSlope: 20
       outSlope: 2
-      tangentMode: 0
+      tangentMode: 69
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -507,11 +588,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   luckLevel: 0
+  maxLuckLevel: 30
   maxHP: 100
   maxHPMultiplier: 0
   baseMoveSpeed: 5
   moveSpeedMultiplier: 0
-  baseAttackRange: 5
+  baseAttackRange: 8
   attackRangeMultiplier: 0
   baseAttackSpeed: 1
   attackSpeedMultiplier: 0

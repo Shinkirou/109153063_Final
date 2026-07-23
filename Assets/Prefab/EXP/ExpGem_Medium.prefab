@@ -132,4 +132,4 @@ MonoBehaviour:
   floatHeight: 0.2
   pickupRange: 3
   magnetSpeed: 6
-  showExpDebug: 1
+  showExpDebug: 0

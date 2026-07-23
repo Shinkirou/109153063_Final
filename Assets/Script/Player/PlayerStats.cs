@@ -4,6 +4,28 @@ public class PlayerStats : MonoBehaviour
 {
     [Header("幸運系統")]
     public int luckLevel = 0;
+    public int maxLuckLevel = 10;
+
+    public float LuckProgress
+    {
+        get
+        {
+            if (maxLuckLevel <= 0)
+            {
+                return 0f;
+            }
+
+            float currentLuck =
+                Mathf.Clamp(
+                    luckLevel,
+                    0,
+                    maxLuckLevel
+                );
+
+            return Mathf.Log(currentLuck + 1f) /
+                   Mathf.Log(maxLuckLevel + 1f);
+        }
+    }
 
 
     //==================================================
@@ -364,26 +386,6 @@ public class PlayerStats : MonoBehaviour
 
 
     //==================================================
-    // 幸運修改方法
-    //==================================================
-
-    public void AddLuckLevel(int amount)
-    {
-        luckLevel += amount;
-
-        if (luckLevel < 0)
-        {
-            luckLevel = 0;
-        }
-
-        Debug.Log(
-            $"幸運等級提升，" +
-            $"目前 Luck Level：{luckLevel}"
-        );
-    }
-
-
-    //==================================================
     // 吸血修改方法
     //==================================================
 
@@ -432,4 +434,26 @@ public class PlayerStats : MonoBehaviour
             $"最終防禦：{FinalArmor:0.##}"
         );
     }
+
+
+    //==================================================
+    // 幸運修改方法
+    //==================================================
+
+    public void AddLuckLevel(int amount)
+    {
+        luckLevel += amount;
+
+        luckLevel = Mathf.Clamp(
+            luckLevel,
+            0,
+            maxLuckLevel
+        );
+
+        Debug.Log(
+            $"幸運等級提升，" +
+            $"目前 Luck Level：{luckLevel}"
+        );
+    }
+
 }
