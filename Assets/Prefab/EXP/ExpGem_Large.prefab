@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExpGem
   gemType: 2
-  expValue: 10
+  expValue: 7
   rotateSpeed: 90
   floatSpeed: 3
   floatHeight: 0.2

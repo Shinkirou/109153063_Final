@@ -27,7 +27,7 @@ public class PlayerLevel : MonoBehaviour
         UpdateLevelUI();
     }
 
-    //測試經驗值使用
+    /*測試經驗值使用
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -35,6 +35,7 @@ public class PlayerLevel : MonoBehaviour
             AddExp(3);
         }
     }
+    */
 
     public int GetSuperGemExpAmount()
     {

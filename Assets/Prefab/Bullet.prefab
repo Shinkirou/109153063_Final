@@ -153,9 +153,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6fc7beb354c342438c12ce149bc8ef5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
-  speed: 8
+  speed: 20
   damage: 3
   lifeTime: 10
   bulletRenderer: {fileID: 5685759027050873647}
   normalColor: {r: 0.10980393, g: 0.15294118, b: 0.61960787, a: 1}
   criticalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  showHitEnemyDebug: 0

@@ -37,6 +37,55 @@ public class UpgradeManager : MonoBehaviour
     [Range(0f, 100f)]
     public float maxMythicCardChance = 10f;
 
+    #region 一般屬性卡數值設定
+    [Header("一般屬性卡每點效果")]
+
+    [InspectorName("攻擊力")]
+    [Tooltip("每 1 點 flatValue 增加多少固定攻擊力")]
+    [Min(0f)]
+    public float damagePFV = 3f;
+
+    [InspectorName("攻擊距離")]
+    [Tooltip("每 1 點 flatValue 增加多少攻擊距離，例如 0.08 = 8%")]
+    [Min(0f)]
+    public float attackRangePFV = 0.08f;
+
+    [InspectorName("攻擊速度")]
+    [Tooltip("每 1 點 flatValue 增加多少攻擊速度，例如 0.12 = 12%")]
+    [Min(0f)]
+    public float attackSpeedPFV = 0.12f;
+
+    [InspectorName("最大生命")]
+    [Tooltip("每 1 點 flatValue 增加多少最大生命")]
+    [Min(0f)]
+    public float maxHPPFV = 10f;
+
+    [InspectorName("移動速度")]
+    [Tooltip("每 1 點 flatValue 增加多少移動速度，例如 0.08 = 8%")]
+    [Min(0f)]
+    public float moveSpeedPFV = 0.08f;
+
+    [InspectorName("暴擊率")]
+    [Tooltip("每 1 點 flatValue 增加多少暴擊率，例如 0.05 = 5 個百分點")]
+    [Min(0f)]
+    public float criticalRatePFV = 0.05f;
+
+    [InspectorName("暴擊傷害")]
+    [Tooltip("每 1 點 flatValue 增加多少暴擊傷害，例如 0.10 = 10 個百分點")]
+    [Min(0f)]
+    public float criticalDamagePFV = 0.10f;
+
+    [InspectorName("吸血")]
+    [Tooltip("每 1 點 flatValue 增加多少吸血，例如 0.025 = 2.5 個百分點")]
+    [Min(0f)]
+    public float lifeStealPFV = 0.025f;
+
+    [InspectorName("防禦")]
+    [Tooltip("每 1 點 flatValue 增加多少防禦")]
+    [Min(0f)]
+    public float armorPFV = 3f;
+    #endregion
+
     //處發升級，會打開升級面板，並暫停遊戲
     public void ShowUpgradePanel()
     {
@@ -268,7 +317,7 @@ public class UpgradeManager : MonoBehaviour
         return CreateMythicCard(selectedType);
     }
 
-    // 根據神話類型建立對應神話卡
+    //根據神話類型建立對應神話卡
     UpgradeCard CreateMythicCard(SpecialCardType mythicType)
     {
         switch (mythicType)
@@ -277,10 +326,10 @@ public class UpgradeManager : MonoBehaviour
                 return new UpgradeCard(
                     "戰鬥本能",
                     "攻擊力、攻擊距離、攻擊速度\n" +
-                    "最終提升 5%",
+                    "最終提升10%",
                     CardCategory.Special,
 
-                    // 特殊卡不使用一般屬性欄位
+                    //特殊卡不使用一般屬性欄位
                     UpgradeType.Damage,
                     CardRarity.Common,
 
@@ -292,8 +341,8 @@ public class UpgradeManager : MonoBehaviour
             case SpecialCardType.MythicDefense:
                 return new UpgradeCard(
                     "鋼鐵之軀",
-                    "最大生命、防禦最終提升 10%\n" +
-                    "移動速度最終降低 10%",
+                    "最大生命、防禦最終提升20%\n" +
+                    "移動速度最終降低10%",
                     CardCategory.Special,
 
                     UpgradeType.Damage,
@@ -307,8 +356,8 @@ public class UpgradeManager : MonoBehaviour
             case SpecialCardType.MythicCritical:
                 return new UpgradeCard(
                     "致命一擊",
-                    "暴擊率增加 5 個百分點\n" +
-                    "最終暴擊傷害提升 10%",
+                    "暴擊率增加+20%\n" +
+                    "最終暴擊傷害提升30%",
                     CardCategory.Special,
 
                     UpgradeType.Damage,
@@ -322,8 +371,8 @@ public class UpgradeManager : MonoBehaviour
             case SpecialCardType.MythicSurvival:
                 return new UpgradeCard(
                     "鮮血追獵",
-                    "吸血增加 5 個百分點\n" +
-                    "移動速度最終提升 10%",
+                    "吸血增加+10%\n" +
+                    "移動速度最終提升20%",
                     CardCategory.Special,
 
                     UpgradeType.Damage,
@@ -391,7 +440,7 @@ public class UpgradeManager : MonoBehaviour
     UpgradeCard CreateLuckCard()
     {
         string cardName = "幸運牌";
-        string description = "幸運等級 +1";
+        string description = "幸運等級 +3";
 
         return new UpgradeCard(
             cardName,
@@ -596,54 +645,111 @@ public class UpgradeManager : MonoBehaviour
     string CreateDescription(UpgradeType type, float flatValue, float multiplierValue)
     {
         string description;                             
-        string typeName = GetUpgradeTypeName(type);     
+        string typeName = GetUpgradeTypeName(type);
 
         switch (type)
         {
             case UpgradeType.Damage:
-                description =
-                    $"攻擊力 +{flatValue * 1f:0}";
-                break;
+                {
+                    float amount =
+                        flatValue * damagePFV;
+
+                    description =
+                        $"攻擊力 +{amount:0.#}";
+                    break;
+                }
 
             case UpgradeType.AttackRange:
-                description =
-                    $"攻擊距離 +{flatValue * 5f:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        attackRangePFV *
+                        100f;
+
+                    description =
+                        $"攻擊距離 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.AttackSpeed:
-                description =
-                    $"攻擊速度 +{flatValue * 5f:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        attackSpeedPFV *
+                        100f;
+
+                    description =
+                        $"攻擊速度 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.MaxHP:
-                description =
-                    $"最大生命 +{flatValue * 10f:0}";
-                break;
+                {
+                    float amount =
+                        flatValue * maxHPPFV;
+
+                    description =
+                        $"最大生命 +{amount:0.#}";
+                    break;
+                }
 
             case UpgradeType.MoveSpeed:
-                description =
-                    $"移動速度 +{flatValue * 5f:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        moveSpeedPFV *
+                        100f;
+
+                    description =
+                        $"移動速度 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.CriticalRate:
-                description =
-                    $"暴擊率 +{flatValue:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        criticalRatePFV *
+                        100f;
+
+                    description =
+                        $"暴擊率 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.CriticalDamage:
-                description =
-                    $"暴擊傷害 +{flatValue * 10f:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        criticalDamagePFV *
+                        100f;
+
+                    description =
+                        $"暴擊傷害 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.LifeSteal:
-                description =
-                    $"吸血 +{flatValue:0}%";
-                break;
+                {
+                    float amount =
+                        flatValue *
+                        lifeStealPFV *
+                        100f;
+
+                    description =
+                        $"吸血 +{amount:0.#}%";
+                    break;
+                }
 
             case UpgradeType.Armor:
-                description =
-                    $"防禦 +{flatValue * 3f:0.#}";
-                break;
+                {
+                    float amount =
+                        flatValue * armorPFV;
+
+                    description =
+                        $"防禦 +{amount:0.#}";
+                    break;
+                }
 
             default:
                 description =
@@ -651,7 +757,6 @@ public class UpgradeManager : MonoBehaviour
                 break;
         }
 
-        // 神話卡的額外百分比描述
         if (multiplierValue > 0f)
         {
             description +=
@@ -805,7 +910,15 @@ public class UpgradeManager : MonoBehaviour
         //套用攻擊力卡牌效果
         void ApplyDamageUpgrade(UpgradeCard upgradeCard)
         {
-            playerStats.AddFlatDamage((int)upgradeCard.flatValue);
+            int damageAmount =
+                Mathf.RoundToInt(
+                    upgradeCard.flatValue *
+                    damagePFV
+                );
+
+            playerStats.AddFlatDamage(
+                damageAmount
+            );
 
             if (upgradeCard.multiplierValue > 0f)
             {
@@ -819,7 +932,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyAttackRangeUpgrade(UpgradeCard upgradeCard)
         {
             float attackRangePercent =
-                upgradeCard.flatValue * 0.05f;
+                upgradeCard.flatValue *
+                attackRangePFV;
 
             playerStats.AddAttackRangeMultiplier(
                 attackRangePercent
@@ -830,7 +944,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyAttackSpeedUpgrade(UpgradeCard upgradeCard)
         {
             float attackSpeedPercent =
-                upgradeCard.flatValue * 0.05f;
+                upgradeCard.flatValue *
+                attackSpeedPFV;
 
             playerStats.AddAttackSpeedMultiplier(
                 attackSpeedPercent
@@ -841,7 +956,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyCriticalRateUpgrade(UpgradeCard upgradeCard)
         {
             float criticalRatePercent =
-                upgradeCard.flatValue * 0.01f;
+                upgradeCard.flatValue *
+                criticalRatePFV;
 
             playerStats.AddCriticalRate(
                 criticalRatePercent
@@ -852,7 +968,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyCriticalDamageUpgrade(UpgradeCard upgradeCard)
         {
             float criticalDamagePercent =
-                upgradeCard.flatValue * 0.1f;
+                upgradeCard.flatValue *
+                criticalDamagePFV;
 
             playerStats.AddCriticalDamage(
                 criticalDamagePercent
@@ -862,12 +979,15 @@ public class UpgradeManager : MonoBehaviour
         //套用最大生命卡牌效果
         void ApplyMaxHPUpgrade(UpgradeCard upgradeCard)
         {
-            int maxHPAmount = (int)(upgradeCard.flatValue * 10f);
+            int maxHPAmount =
+                Mathf.RoundToInt(
+                    upgradeCard.flatValue *
+                    maxHPPFV
+                );
 
             playerStats.AddMaxHP(maxHPAmount);
 
-            PlayerHealth playerHealth =
-                playerStats.GetComponent<PlayerHealth>();
+            PlayerHealth playerHealth = playerStats.GetComponent<PlayerHealth>();
 
             if (playerHealth != null)
             {
@@ -885,7 +1005,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyMoveSpeedUpgrade(UpgradeCard upgradeCard)
         {
             float moveSpeedPercent =
-                upgradeCard.flatValue * 0.05f;
+                upgradeCard.flatValue *
+                moveSpeedPFV;
 
             playerStats.AddMoveSpeedMultiplier(
                 moveSpeedPercent
@@ -896,7 +1017,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyLifeStealUpgrade(UpgradeCard upgradeCard)
         {
             float lifeStealPercent =
-                upgradeCard.flatValue * 0.01f;
+                upgradeCard.flatValue *
+                lifeStealPFV;
 
             playerStats.AddLifeSteal(
                 lifeStealPercent
@@ -907,7 +1029,8 @@ public class UpgradeManager : MonoBehaviour
         void ApplyArmorUpgrade(UpgradeCard upgradeCard)
         {
             float armorAmount =
-                upgradeCard.flatValue * 3f;
+                upgradeCard.flatValue *
+                armorPFV;
 
             playerStats.AddArmor(
                 armorAmount
@@ -932,25 +1055,25 @@ public class UpgradeManager : MonoBehaviour
 
 
             //戰鬥本能：
-            //攻擊力、攻擊距離、攻擊速度最終提升 5%
+            //攻擊力、攻擊距離、攻擊速度最終提升 10%
             case SpecialCardType.MythicCombat:
-                playerStats.AddDamageMultiplier(0.05f);
-                playerStats.AddAttackRangeMultiplier(0.05f);
-                playerStats.AddAttackSpeedMultiplier(0.05f);
+                playerStats.AddDamageMultiplier(0.10f);
+                playerStats.AddAttackRangeMultiplier(0.10f);
+                playerStats.AddAttackSpeedMultiplier(0.10f);
 
                 Debug.Log(
                     "神話卡【戰鬥本能】生效：" +
-                    "攻擊力、攻擊距離、攻擊速度最終提升 5%"
+                    "攻擊力、攻擊距離、攻擊速度最終提升 10%"
                 );
                 break;
 
 
             //鋼鐵之軀：
-            //最大生命、防禦最終提升 10%
+            //最大生命、防禦最終提升 20%
             //移動速度最終降低 10%
             case SpecialCardType.MythicDefense:
-                playerStats.AddMaxHPMultiplier(0.10f);
-                playerStats.AddArmorMultiplier(0.10f);
+                playerStats.AddMaxHPMultiplier(0.20f);
+                playerStats.AddArmorMultiplier(0.20f);
                 playerStats.AddMoveSpeedMultiplier(-0.10f);
 
                 PlayerHealth playerHealth =
@@ -969,38 +1092,38 @@ public class UpgradeManager : MonoBehaviour
 
                 Debug.Log(
                     "神話卡【鋼鐵之軀】生效：" +
-                    "最大生命、防禦最終提升 10%，" +
+                    "最大生命、防禦最終提升 20%，" +
                     "移動速度最終降低 10%"
                 );
                 break;
 
 
             //致命一擊：
-            //暴擊率增加 5 個百分點
-            //最終暴擊傷害提升 10%
+            //暴擊率增加 20 個百分點
+            //最終暴擊傷害提升 30%
             case SpecialCardType.MythicCritical:
-                playerStats.AddCriticalRate(0.05f);
-                playerStats.AddCriticalDamageMultiplier(0.10f);
+                playerStats.AddCriticalRate(0.20f);
+                playerStats.AddCriticalDamageMultiplier(0.30f);
 
                 Debug.Log(
                     "神話卡【致命一擊】生效：" +
-                    "暴擊率增加 5 個百分點，" +
-                    "最終暴擊傷害提升 10%"
+                    "暴擊率增加 20 個百分點，" +
+                    "最終暴擊傷害提升 30%"
                 );
                 break;
 
 
             //鮮血追獵：
-            //吸血增加 5 個百分點
-            //移動速度最終提升 10%
+            //吸血增加 10 個百分點
+            //移動速度最終提升 20%
             case SpecialCardType.MythicSurvival:
-                playerStats.AddLifeSteal(0.05f);
-                playerStats.AddMoveSpeedMultiplier(0.10f);
+                playerStats.AddLifeSteal(0.1f);
+                playerStats.AddMoveSpeedMultiplier(0.20f);
 
                 Debug.Log(
                     "神話卡【鮮血追獵】生效：" +
-                    "吸血增加 5 個百分點，" +
-                    "移動速度最終提升 10%"
+                    "吸血增加 10 個百分點，" +
+                    "移動速度最終提升 20%"
                 );
                 break;
 
