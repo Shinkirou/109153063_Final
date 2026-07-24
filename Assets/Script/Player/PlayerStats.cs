@@ -2,31 +2,58 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("幸運系統")]
-    public int luckLevel = 0;
-    public int maxLuckLevel = 10;
 
+    #region 幸運系統
+
+    [Header("幸運系統")]
+    [Tooltip("玩家目前累積的幸運等級")]
+    [Min(0)]
+    public int luckLevel = 0;
+
+    [Tooltip(
+        "幸運收益的軟上限參數。" +
+        "數值越小，前期幸運提升越快；" +
+        "數值越大，幸運效果成長越平緩。"
+    )]
+    [Min(0.01f)]
+    public float luckSoftCap = 10f;
+
+    [Tooltip(
+        "幸運等級的程式安全上限，" +
+        "只用來防止錯誤造成數值無限增加，" +
+        "不是正常遊戲的幸運上限。"
+    )]
+    [Min(1)]
+    public int safetyMaxLuckLevel = 999;
+
+
+    //幸運效果進度
+    //公式：Luck /（Luck + SoftCap）
+    //結果會逐漸接近 1，但正常情況不會真正到達 1
     public float LuckProgress
     {
         get
         {
-            if (maxLuckLevel <= 0)
-            {
-                return 0f;
-            }
-
-            float currentLuck =
-                Mathf.Clamp(
-                    luckLevel,
-                    0,
-                    maxLuckLevel
+            //防止 Inspector 將 SoftCap 設為 0 或負數
+            float safeSoftCap =
+                Mathf.Max(
+                    luckSoftCap,
+                    0.01f
                 );
 
-            return Mathf.Log(currentLuck + 1f) /
-                   Mathf.Log(maxLuckLevel + 1f);
+            //防止外部程式意外將 Luck 設為負數
+            float currentLuck =
+                Mathf.Max(
+                    luckLevel,
+                    0
+                );
+
+            return currentLuck /
+                   (currentLuck + safeSoftCap);
         }
     }
 
+    #endregion
 
     //==================================================
     // 最大生命
@@ -439,21 +466,26 @@ public class PlayerStats : MonoBehaviour
     //==================================================
     // 幸運修改方法
     //==================================================
-
     public void AddLuckLevel(int amount)
     {
-        luckLevel += amount;
+        //防止安全上限被設成 0 或負數
+        int safeMaximum =
+            Mathf.Max(
+                safetyMaxLuckLevel,
+                1
+            );
 
-        luckLevel = Mathf.Clamp(
-            luckLevel,
-            0,
-            maxLuckLevel
-        );
+        luckLevel =
+            Mathf.Clamp(
+                luckLevel + amount,
+                0,
+                safeMaximum
+            );
 
         Debug.Log(
-            $"幸運等級提升，" +
-            $"目前 Luck Level：{luckLevel}"
+            $"幸運等級變化：{amount:+#;-#;0}，" +
+            $"目前 Luck Level：{luckLevel}，" +
+            $"幸運效果進度：{LuckProgress:P1}"
         );
     }
-
 }

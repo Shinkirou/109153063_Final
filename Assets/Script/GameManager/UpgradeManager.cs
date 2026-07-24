@@ -22,9 +22,8 @@ public class UpgradeManager : MonoBehaviour
     [Range(0f, 100f)]
     public float luckCardChance = 15f;
 
-
+    #region 神話卡抽取設定
     [Header("神話卡設定")]
-
     [Tooltip("沒有任何幸運等級時，每個卡位抽到神話卡的基礎機率")]
     [Range(0f, 100f)]
     public float baseMythicCardChance = 1.5f;
@@ -36,6 +35,7 @@ public class UpgradeManager : MonoBehaviour
     [Tooltip("神話卡出現機率的最高上限")]
     [Range(0f, 100f)]
     public float maxMythicCardChance = 10f;
+    #endregion
 
     #region 一般屬性卡數值設定
     [Header("一般屬性卡每點效果")]
@@ -356,8 +356,8 @@ public class UpgradeManager : MonoBehaviour
             case SpecialCardType.MythicCritical:
                 return new UpgradeCard(
                     "致命一擊",
-                    "暴擊率增加+20%\n" +
-                    "最終暴擊傷害提升30%",
+                    "暴擊率增加+15%\n" +
+                    "最終暴擊傷害提升10%",
                     CardCategory.Special,
 
                     UpgradeType.Damage,
@@ -560,13 +560,13 @@ public class UpgradeManager : MonoBehaviour
                 return 1f;
 
             case CardRarity.Rare:
-                return 2f;
+                return 1.5f;
 
             case CardRarity.Epic:
-                return 3f;
+                return 2f;
 
             case CardRarity.Legendary:
-                return 5f;
+                return 3f;
 
             default:
                 return 1f;
@@ -1099,16 +1099,16 @@ public class UpgradeManager : MonoBehaviour
 
 
             //致命一擊：
-            //暴擊率增加 20 個百分點
-            //最終暴擊傷害提升 30%
+            //暴擊率增加 15 個百分點
+            //最終暴擊傷害提升 10%
             case SpecialCardType.MythicCritical:
-                playerStats.AddCriticalRate(0.20f);
-                playerStats.AddCriticalDamageMultiplier(0.30f);
+                playerStats.AddCriticalRate(0.15f);
+                playerStats.AddCriticalDamageMultiplier(0.10f);
 
                 Debug.Log(
                     "神話卡【致命一擊】生效：" +
-                    "暴擊率增加 20 個百分點，" +
-                    "最終暴擊傷害提升 30%"
+                    "暴擊率增加 15 個百分點，" +
+                    "最終暴擊傷害提升 10%"
                 );
                 break;
 

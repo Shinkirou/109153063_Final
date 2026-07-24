@@ -204,6 +204,7 @@ MonoBehaviour:
     weight: 1
   dropSpreadRadius: 0.8
   showDropDebug: 0
+  maximumLuckInfluence: 30
   smallWeightReductionPerLuck: 2
   minimumSmallWeight: 15
   mediumWeightBonusPerLuck: 1

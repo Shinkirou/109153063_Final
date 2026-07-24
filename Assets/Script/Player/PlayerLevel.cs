@@ -41,7 +41,7 @@ public class PlayerLevel : MonoBehaviour
     {
         return Mathf.Max(
             Mathf.RoundToInt(
-                expToNextLevel * 0.25f
+                expToNextLevel * 0.15f
             ),
             1
         );
