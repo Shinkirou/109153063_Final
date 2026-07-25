@@ -9,6 +9,15 @@ public class UpgradeManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject upgradePanel;
+    //提供其他系統判斷升級面板是否正在顯示
+    public bool IsUpgradePanelOpen
+    {
+        get
+        {
+            return upgradePanel != null &&
+                   upgradePanel.activeSelf;
+        }
+    }
 
     [Header("玩家")]
     public PlayerStats playerStats;
