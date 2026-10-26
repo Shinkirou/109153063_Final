@@ -36,8 +36,8 @@ public class PauseManager : MonoBehaviour
             pausePanel.SetActive(false);
         }
 
-        //避免上一個場景留下暫停狀態
-        Time.timeScale = 1f;
+        // 新局恢復時間；結算狀態則維持停止。
+        Time.timeScale = GameManager.IsGameOver ? 0f : 1f;
 
         ValidateReferences();
     }
@@ -45,6 +45,12 @@ public class PauseManager : MonoBehaviour
 
     private void Update()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(pauseKey))
         {
             HandlePauseInput();
@@ -56,7 +62,7 @@ public class PauseManager : MonoBehaviour
     {
         //切換場景或物件關閉時，
         //避免 Time.timeScale 停留在 0
-        if (IsPaused)
+        if (IsPaused && !GameManager.IsGameOver)
         {
             Time.timeScale = 1f;
         }
@@ -86,6 +92,12 @@ public class PauseManager : MonoBehaviour
 
     public void TogglePause()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (IsPaused)
         {
             ResumeGame();
@@ -99,6 +111,12 @@ public class PauseManager : MonoBehaviour
 
     public void PauseGame()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (pausePanel == null)
         {
             Debug.LogError(
@@ -121,6 +139,12 @@ public class PauseManager : MonoBehaviour
 
     public void ResumeGame()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (pausePanel != null)
         {
             pausePanel.SetActive(false);
@@ -142,21 +166,13 @@ public class PauseManager : MonoBehaviour
 
     public void RestartGame()
     {
-        //切換場景前恢復時間
-        Time.timeScale = 1f;
-
-        SceneManager.LoadScene(
-            SceneManager.GetActiveScene().name
-        );
+        GameManager.RestartCurrentScene();
     }
 
 
     public void ReturnToMainMenu()
     {
-        //GameManager 內部也會恢復時間，
-        //這裡再做一次防呆
-        Time.timeScale = 1f;
-
+        // 場景確認可載入後，再由 GameManager 重設本局狀態。
         GameManager.GoToMainMenu();
     }
 

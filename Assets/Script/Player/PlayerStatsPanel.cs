@@ -80,6 +80,12 @@ public class PlayerStatsPanel : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.IsGameOver)
+        {
+            ClosePanel();
+            return;
+        }
+
         HandleKeyboardHold();
 
         //角色面板未開啟時，不需要刷新
@@ -98,6 +104,12 @@ public class PlayerStatsPanel : MonoBehaviour
     //給中央 Character Information Button 使用
     public void TogglePanel()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (statsPanel == null)
         {
             Debug.LogError(
@@ -135,6 +147,12 @@ public class PlayerStatsPanel : MonoBehaviour
     //必要時可由其他系統直接開啟
     public void OpenPanel()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (statsPanel == null)
         {
             Debug.LogError(

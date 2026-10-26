@@ -49,6 +49,12 @@ public class PlayerLevel : MonoBehaviour
 
     public void AddExp(int amount)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         currentExp += amount;
 
         while (currentExp >= expToNextLevel)

@@ -61,6 +61,12 @@ public class ExpGem : MonoBehaviour
     //視覺與移動
     void Update()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver || Time.timeScale <= 0f)
+        {
+            return;
+        }
+
         RotateGem();        //旋轉經驗球
         FloatGem();         //漂浮效果
         MagnetToPlayer();   //吸附至玩家
@@ -117,6 +123,12 @@ public class ExpGem : MonoBehaviour
     //拾取
     void OnTriggerEnter(Collider other)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (!other.CompareTag("Player"))
         {
             return;

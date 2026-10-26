@@ -42,6 +42,12 @@ public class Bullet : MonoBehaviour
 
     void Update()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver || Time.timeScale <= 0f)
+        {
+            return;
+        }
+
         if (target == null)
         {
             Destroy(gameObject);
@@ -90,6 +96,12 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
 
         EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
 

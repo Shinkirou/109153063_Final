@@ -116,6 +116,12 @@ public class EnemySpawner : MonoBehaviour
     //Unity 生命週期
     void Update()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver || Time.timeScale <= 0f)
+        {
+            return;
+        }
+
         //累積本局經過時間
         elapsedTime += Time.deltaTime;
 

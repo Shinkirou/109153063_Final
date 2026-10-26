@@ -12,6 +12,8 @@ public class PlayerHealth : MonoBehaviour
     public TMP_Text hpText;
     public Image hpFillImage;
 
+    public bool IsDead { get; private set; }
+
     private int currentHP;
     private int currentMaxHP;
 
@@ -39,6 +41,7 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
+        IsDead = false;
         //PlayerHealth 與 PlayerStats 應掛在同一個玩家物件上
         playerStats = GetComponent<PlayerStats>();
 
@@ -95,6 +98,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void RefreshMaxHP(bool healGainedAmount = true)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (IsDead || GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (playerStats == null)
         {
             Debug.LogWarning(
@@ -131,6 +140,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (IsDead || GameManager.IsGameOver)
+        {
+            return;
+        }
+
         // 玩家處於無敵狀態時，不受到傷害
         if (isInvincible)
         {
@@ -229,6 +244,12 @@ public class PlayerHealth : MonoBehaviour
 
     public void Heal(int amount)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (IsDead || GameManager.IsGameOver)
+        {
+            return;
+        }
+
         currentHP += amount;
 
         if (currentHP > currentMaxHP)
@@ -247,6 +268,12 @@ public class PlayerHealth : MonoBehaviour
     //根據造成的實際傷害與吸血率進行回血
     public void ApplyLifeSteal(int damageDealt,float lifeStealRate)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (IsDead || GameManager.IsGameOver)
+        {
+            return;
+        }
+
         //沒有造成傷害或沒有吸血率時，不處理
         if (damageDealt <= 0 || lifeStealRate <= 0f)
         {
@@ -321,7 +348,21 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("遊戲結束");
-        
+        if (IsDead)
+        {
+            return;
+        }
+
+        IsDead = true;
+        StopAllCoroutines();
+
+        if (playerRenderer != null)
+        {
+            playerRenderer.material.color = normalColor;
+        }
+
+        Debug.Log("角色死亡");
+        GameManager.Defeat(DefeatReason.PlayerDeath);
+
     }    
 }

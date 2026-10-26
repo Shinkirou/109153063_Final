@@ -98,6 +98,12 @@ public class UpgradeManager : MonoBehaviour
     //處發升級，會打開升級面板，並暫停遊戲
     public void ShowUpgradePanel()
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         
         GenerateUpgradeCards();             //製作牌的方法
         UpdateCardUI();                     //更新UI文字
@@ -838,6 +844,12 @@ public class UpgradeManager : MonoBehaviour
     //當玩家點擊 UI 畫面上的第 1、2、3 個按鈕時，就會觸發這個方法
     public void SelectCard(int index)
     {
+        // 本局結束後，不再執行遊戲操作。
+        if (GameManager.IsGameOver)
+        {
+            return;
+        }
+
         if (index < 0 || index >= currentCards.Count)
         {
             // 防呆機制：如果傳進來的數字小於 0，或者大於我們抽出的卡牌總數（目前是 3 張），就報警告並攔截
@@ -1150,6 +1162,6 @@ public class UpgradeManager : MonoBehaviour
     void CloseUpgradePanel()
     {
         upgradePanel.SetActive(false);
-        Time.timeScale = 1f;
+        Time.timeScale = GameManager.IsGameOver ? 0f : 1f;
     }
 }
