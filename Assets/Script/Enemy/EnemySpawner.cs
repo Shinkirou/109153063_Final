@@ -109,9 +109,27 @@ public class EnemySpawner : MonoBehaviour
     //生成計時器
     private float spawnTimer = 0f;
 
+
     //目前普通敵人階段經過時間
     private float elapsedTime = 0f;
+    [Header("遊戲時間")]
+    [Tooltip("提供本局共用的遊戲時間")]
+    public GameTimer gameTimer;
 
+    void Start()
+    {
+        // 沒有手動指定時，嘗試尋找場景中的 GameTimer。
+        if (gameTimer == null)
+        {
+            gameTimer = FindAnyObjectByType<GameTimer>();
+        }
+
+        if (gameTimer == null)
+        {
+            Debug.LogError("EnemySpawner 找不到 GameTimer，請確認場景中有啟用的 GameTimer。");
+            enabled = false;
+        }
+    }
 
     //Unity 生命週期
     void Update()
@@ -122,8 +140,8 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        //累積本局經過時間
-        elapsedTime += Time.deltaTime;
+        //讀取 GameTimer 的本局經過時間
+        elapsedTime = gameTimer.ElapsedSeconds;
 
         //累積敵人生成計時
         spawnTimer += Time.deltaTime;

@@ -22,7 +22,7 @@ public class RunResultUI : MonoBehaviour
     public static void Show(DefeatReason reason)
     {
         RunResultUI ui =
-            Object.FindFirstObjectByType<RunResultUI>();
+            Object.FindAnyObjectByType<RunResultUI>();
 
         if (ui == null)
         {
@@ -45,8 +45,7 @@ public class RunResultUI : MonoBehaviour
 
         // 關閉可能遮住結算畫面的其他面板。
         foreach (UpgradeManager manager in
-            Object.FindObjectsByType<UpgradeManager>(
-                FindObjectsSortMode.None))
+            Object.FindObjectsByType<UpgradeManager>())
         {
             if (manager.upgradePanel != null)
             {
@@ -55,8 +54,7 @@ public class RunResultUI : MonoBehaviour
         }
 
         foreach (PauseManager manager in
-            Object.FindObjectsByType<PauseManager>(
-                FindObjectsSortMode.None))
+            Object.FindObjectsByType<PauseManager>())
         {
             if (manager.pausePanel != null)
             {
@@ -65,8 +63,7 @@ public class RunResultUI : MonoBehaviour
         }
 
         foreach (PlayerStatsPanel controller in
-            Object.FindObjectsByType<PlayerStatsPanel>(
-                FindObjectsSortMode.None))
+            Object.FindObjectsByType<PlayerStatsPanel>())
         {
             controller.ClosePanel();
         }

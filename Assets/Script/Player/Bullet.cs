@@ -8,6 +8,8 @@ public class Bullet : MonoBehaviour
     public float lifeTime = 10f;
 
     private Transform target;
+    //記錄子彈最後一次有效的飛行方向。
+    private Vector3 lastDirection;
 
 
     //這顆子彈建立當下取得的暴擊屬性
@@ -48,18 +50,21 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        if (target == null)
+        //目標存在時，持續更新子彈的追蹤方向。
+        if (target != null)
         {
-            Destroy(gameObject);
-            return;
+            Vector3 direction = target.position - transform.position;
+            direction.y = 0f;
+
+            //只有方向有效時才更新，避免覆蓋原本的飛行方向。
+            if (direction.sqrMagnitude > 0.0001f)
+            {
+                lastDirection = direction.normalized;
+            }
         }
 
-        Vector3 direction = target.position - transform.position;
-        direction.y = 0f;
-
-        direction = direction.normalized;
-
-        transform.position += direction * speed * Time.deltaTime;
+        //目標消失後，沿著最後記錄的方向繼續飛行。
+        transform.position += lastDirection * speed * Time.deltaTime;
     }
 
     //設定子彈目標與攻擊屬性
