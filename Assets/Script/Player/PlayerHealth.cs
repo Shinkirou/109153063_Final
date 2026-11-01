@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 
 public class PlayerHealth : MonoBehaviour
@@ -23,8 +24,19 @@ public class PlayerHealth : MonoBehaviour
     private const float ArmorReductionConstant = 50f;       
 
     [Header("無敵時間")]                      //玩家受到傷害後的無敵時間，避免連續受到傷害
-    public float invincibleTime = 0.8f;
-    private bool isInvincible = false;
+    [Min(0f)] public float hitInvincibilityDuration = 0.1f;
+    [Min(0f)] public float sameAttackerInterval = 0.5f;
+    private float hitInvincibleUntil;
+    private float rollInvincibleUntil;
+    private readonly Dictionary<GameObject, float> attackerNextHit = new Dictionary<GameObject, float>();
+    private readonly List<GameObject> expiredAttackers = new List<GameObject>();
+    private Coroutine damageFlash;
+
+    public void GrantRollInvincibility(float duration)
+    {
+        if (!IsDead && !GameManager.IsGameOver)
+            rollInvincibleUntil = Mathf.Max(rollInvincibleUntil, Time.time + Mathf.Max(0f, duration));
+    }
 
     [Header("被攻擊視覺效果")]                 //玩家受到傷害時的閃爍效果，讓玩家更明顯地知道自己受到了攻擊
     public Renderer playerRenderer;
@@ -138,7 +150,7 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, GameObject attacker = null)
     {
         // 本局結束後，不再執行遊戲操作。
         if (IsDead || GameManager.IsGameOver)
@@ -147,10 +159,20 @@ public class PlayerHealth : MonoBehaviour
         }
 
         // 玩家處於無敵狀態時，不受到傷害
-        if (isInvincible)
+        if (damage <= 0 || Time.timeScale <= 0f || Time.time < hitInvincibleUntil || Time.time < rollInvincibleUntil)
         {
             return;
         }
+
+        if (attacker != null && attackerNextHit.TryGetValue(attacker, out float nextHit) && Time.time < nextHit)
+            return;
+
+        expiredAttackers.Clear();
+        foreach (var entry in attackerNextHit)
+            if (entry.Key == null || Time.time >= entry.Value) expiredAttackers.Add(entry.Key);
+        foreach (GameObject expired in expiredAttackers) attackerNextHit.Remove(expired);
+        if (attacker != null) attackerNextHit[attacker] = Time.time + Mathf.Max(0f, sameAttackerInterval);
+        hitInvincibleUntil = Time.time + Mathf.Max(0f, hitInvincibilityDuration);
 
         //根據護甲計算實際受到的傷害
         int finalDamage = CalculateFinalDamage(damage);
@@ -197,7 +219,8 @@ public class PlayerHealth : MonoBehaviour
             return;
         }
 
-        StartCoroutine(InvincibleCoroutine());
+        if (damageFlash != null) StopCoroutine(damageFlash);
+        damageFlash = StartCoroutine(InvincibleCoroutine());
 
         //根據玩家最終護甲計算實際受到的傷害
         int CalculateFinalDamage(int originalDamage)
@@ -315,27 +338,25 @@ public class PlayerHealth : MonoBehaviour
     //玩家無敵判定
     IEnumerator InvincibleCoroutine()      
     {
-        isInvincible = true;
-
         float timer = 0f;
 
-        while (timer < invincibleTime)
+        while (timer < hitInvincibilityDuration)
         {
             if (playerRenderer != null)
             {
                 playerRenderer.material.color = damageColor;
             }
 
-            yield return new WaitForSeconds(flashInterval);
+            yield return new WaitForSeconds(Mathf.Max(0.01f, flashInterval));
 
             if (playerRenderer != null)
             {
                 playerRenderer.material.color = normalColor;
             }
 
-            yield return new WaitForSeconds(flashInterval);
+            yield return new WaitForSeconds(Mathf.Max(0.01f, flashInterval));
 
-            timer += flashInterval * 2f;
+            timer += Mathf.Max(0.01f, flashInterval) * 2f;
         }
 
         if (playerRenderer != null)
@@ -343,7 +364,7 @@ public class PlayerHealth : MonoBehaviour
             playerRenderer.material.color = normalColor;
         }
 
-        isInvincible = false;
+        damageFlash = null;
     }
 
     void Die()

@@ -35,6 +35,14 @@ public class RunResultUI : MonoBehaviour
         ui.ShowResult(reason);
     }
 
+    public static void ShowVictory()
+    {
+        RunResultUI ui = Object.FindAnyObjectByType<RunResultUI>();
+        if (ui == null) { Debug.LogError("RunResultUI missing."); return; }
+        ui.ShowResult(DefeatReason.None);
+        if (ui.titleText != null) ui.titleText.text = "挑戰成功";
+        if (ui.reasonText != null) ui.reasonText.text = "成功擊敗 Boss";
+    }
     private void ShowResult(DefeatReason reason)
     {
         if (resultPanel == null)
@@ -76,6 +84,7 @@ public class RunResultUI : MonoBehaviour
         if (reasonText != null)
         {
             reasonText.text =
+                reason == DefeatReason.KillStageTimeout ? "失敗原因：限時擊殺超時" :
                 reason == DefeatReason.PlayerDeath
                 ? "失敗原因：角色死亡"
                 : "失敗原因：Boss 討伐超時";

@@ -5,6 +5,7 @@ public class EnemyHealth : MonoBehaviour
     private EnemyDrop enemyDrop;
     private EnemyStats enemyStats;
     private int currentHP;
+    private bool isDead;
 
     [Header("測試")]
     [Tooltip("是否在 Console 顯示敵人的受傷與死亡資訊")]
@@ -31,6 +32,9 @@ public class EnemyHealth : MonoBehaviour
         currentHP = enemyStats.maxHP;               
     }
 
+    public bool IsDead => isDead;
+    public int CurrentHealth => Mathf.Max(0, currentHP);
+
     public void TakeDamage(int damage)
     {
         // 本局結束後，不再執行遊戲操作。
@@ -39,7 +43,7 @@ public class EnemyHealth : MonoBehaviour
             return;
         }
 
-        if (damage <= 0)
+        if (isDead || damage <= 0)
         {
             return;
         }
@@ -57,12 +61,22 @@ public class EnemyHealth : MonoBehaviour
 
         if (currentHP <= 0)
         {
+            StageController.NotifyEnemyKilled(this);
             Die();
         }
     }
 
+    public void ClearForStage()
+    {
+        if (!GameManager.IsGameOver) Die();
+    }
+
     void Die()
     {
+        if (isDead) return;
+        isDead = true;
+        if (enemyDrop == null) enemyDrop = GetComponent<EnemyDrop>();
+        if (enemyStats == null) enemyStats = GetComponent<EnemyStats>();
         //由 EnemyDrop 統一處理經驗球與未來其他掉落物
         if (enemyDrop != null)
         {
@@ -77,7 +91,7 @@ public class EnemyHealth : MonoBehaviour
             );
         }
 
-        if (showEnemyHealthDebug)
+        if (showEnemyHealthDebug && enemyStats != null)
         {
             Debug.Log($"{enemyStats.enemyName} 死亡");
         }

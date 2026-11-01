@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UpgradeManager : MonoBehaviour
 {
@@ -52,7 +53,7 @@ public class UpgradeManager : MonoBehaviour
     [InspectorName("攻擊力")]
     [Tooltip("每 1 點 flatValue 增加多少固定攻擊力")]
     [Min(0f)]
-    public float damagePFV = 3f;
+    public float damagePFV = 30f;
 
     [InspectorName("攻擊距離")]
     [Tooltip("每 1 點 flatValue 增加多少攻擊距離，例如 0.08 = 8%")]
@@ -87,7 +88,7 @@ public class UpgradeManager : MonoBehaviour
     [InspectorName("吸血")]
     [Tooltip("每 1 點 flatValue 增加多少吸血，例如 0.025 = 2.5 個百分點")]
     [Min(0f)]
-    public float lifeStealPFV = 0.025f;
+    public float lifeStealPFV = 0.0025f;
 
     [InspectorName("防禦")]
     [Tooltip("每 1 點 flatValue 增加多少防禦")]
@@ -96,24 +97,146 @@ public class UpgradeManager : MonoBehaviour
     #endregion
 
     //處發升級，會打開升級面板，並暫停遊戲
-    public void ShowUpgradePanel()
+    private bool rifleRewardOpen;
+    [Header("闖關獎勵介面")]
+    public Color rifleRewardBackground = new Color(0.08f, 0.22f, 0.32f, 0.95f);
+    [Min(1f)] public float rifleRewardFontSize = 22f;
+    private Image rewardBackground;
+    private Color savedBackgroundColor;
+    private TMP_Text rewardTitle;
+    private string savedTitle;
+    private TMP_FontAsset savedTitleFont;
+    private readonly float[] savedRewardFontSizes = new float[3];
+    private readonly bool[] savedAutoSizing = new bool[3];
+    private readonly float[] savedMinFontSizes = new float[3];
+    private readonly float[] savedMaxFontSizes = new float[3];
+    private readonly Vector2[] savedCardSizes = new Vector2[3];
+    private readonly System.Collections.Generic.List<int> rifleRewardOptions = new System.Collections.Generic.List<int>();
+    private readonly System.Collections.Generic.HashSet<int> chosenRifleRewards = new System.Collections.Generic.HashSet<int>();
+    public bool IsRifleRewardOpen => rifleRewardOpen;
+
+    public void ShowRifleReward()
     {
-        // 本局結束後，不再執行遊戲操作。
-        if (GameManager.IsGameOver)
+        RifleAugments rifle = playerStats != null ? playerStats.GetComponent<RifleAugments>() : null;
+        if (rifle == null || upgradePanel == null || IsUpgradePanelOpen)
         {
+            Debug.LogError("Rifle reward requires RifleAugments and a closed, assigned upgrade panel.");
             return;
         }
-
-        
-        GenerateUpgradeCards();             //製作牌的方法
-        UpdateCardUI();                     //更新UI文字
-
-        //打開升級面板，暫停遊戲
+        rifleRewardOptions.Clear();
+        var pool = new System.Collections.Generic.List<int>();
+        for (int i = 0; i < 4; i++) if (!chosenRifleRewards.Contains(i)) pool.Add(i);
+        while (rifleRewardOptions.Count < 3 && pool.Count > 0)
+        {
+            int index = Random.Range(0, pool.Count);
+            rifleRewardOptions.Add(pool[index]);
+            pool.RemoveAt(index);
+        }
+        if (rifleRewardOptions.Count != 3) { Debug.LogError("Not enough rifle rewards."); return; }
+        TMP_Text[] texts = { cardText1, cardText2, cardText3 };
+        rewardBackground = upgradePanel.GetComponent<Image>();
+        if (rewardBackground != null)
+        {
+            savedBackgroundColor = rewardBackground.color;
+            rewardBackground.color = rifleRewardBackground;
+        }
+        rewardTitle = null;
+        foreach (TMP_Text candidate in upgradePanel.GetComponentsInChildren<TMP_Text>(true))
+        {
+            if (candidate.transform.parent == upgradePanel.transform) { rewardTitle = candidate; break; }
+        }
+        if (rewardTitle != null)
+        {
+            savedTitle = rewardTitle.text;
+            savedTitleFont = rewardTitle.font;
+            if (cardText1 != null) rewardTitle.font = cardText1.font;
+            rewardTitle.text = "闖關獎勵";
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            if (texts[i] == null) continue;
+            savedRewardFontSizes[i] = texts[i].fontSize;
+            savedAutoSizing[i] = texts[i].enableAutoSizing;
+            savedMinFontSizes[i] = texts[i].fontSizeMin;
+            savedMaxFontSizes[i] = texts[i].fontSizeMax;
+            RectTransform card = texts[i].transform.parent as RectTransform;
+            if (card != null)
+            {
+                savedCardSizes[i] = card.sizeDelta;
+                card.sizeDelta = new Vector2(240f, 140f);
+            }
+            texts[i].enableAutoSizing = true;
+            texts[i].fontSizeMin = Mathf.Min(18f, rifleRewardFontSize);
+            texts[i].fontSizeMax = rifleRewardFontSize;
+            texts[i].fontSize = rifleRewardFontSize;
+            texts[i].text = RifleRewardDescription(rifleRewardOptions[i], rifle);
+        }
+        rifleRewardOpen = true;
         upgradePanel.SetActive(true);
         Time.timeScale = 0f;
     }
 
-    //產生本次升級使用的三張卡牌
+    private string RifleRewardDescription(int id, RifleAugments rifle)
+    {
+        switch (id)
+        {
+            case 0: return $"雙線火力\n雙槍交錯\n每顆傷害 {rifle.dualFireDamageMultiplier * 100f:0.#}%";
+            case 1: return $"火力升溫\n攻速最多 +{rifle.heatMaxAttackSpeedBonus * 100f:0.#}%\n過熱需冷卻";
+            case 2: return $"追擊標記\n每次命中 +{rifle.trackingMarkBonusPerHit * 100f:0.#}%\n最高 +{rifle.trackingMarkMaxBonus * 100f:0.#}%";
+            default: return $"獵殺超頻\n擊殺加攻速 {rifle.killOverdriveAttackSpeedBonus * 100f:0.#}%\n持續 {rifle.killOverdriveDuration:0.#} 秒";
+        }
+    }
+
+    private void SelectRifleReward(int index)
+    {
+        if (index < 0 || index >= rifleRewardOptions.Count || playerStats == null) return;
+        RifleAugments rifle = playerStats.GetComponent<RifleAugments>();
+        if (rifle == null) { Debug.LogError("RifleAugments missing."); return; }
+        int id = rifleRewardOptions[index];
+        switch (id)
+        {
+            case 0: rifle.dualFireEnabled = true; break;
+            case 1: rifle.heatEnabled = true; break;
+            case 2: rifle.trackingMarkEnabled = true; break;
+            case 3: rifle.killOverdriveEnabled = true; break;
+        }
+        TMP_Text[] texts = { cardText1, cardText2, cardText3 };
+        for (int i = 0; i < 3; i++)
+        {
+            if (texts[i] == null) continue;
+            texts[i].enableAutoSizing = savedAutoSizing[i];
+            texts[i].fontSizeMin = savedMinFontSizes[i];
+            texts[i].fontSizeMax = savedMaxFontSizes[i];
+            texts[i].fontSize = savedRewardFontSizes[i];
+            RectTransform card = texts[i].transform.parent as RectTransform;
+            if (card != null) card.sizeDelta = savedCardSizes[i];
+        }
+        if (rewardBackground != null) rewardBackground.color = savedBackgroundColor;
+        if (rewardTitle != null) { rewardTitle.font = savedTitleFont; rewardTitle.text = savedTitle; }
+        chosenRifleRewards.Add(id);
+        rifleRewardOpen = false;
+        upgradePanel.SetActive(false);
+        Time.timeScale = 0f;
+    }
+    private int pendingUpgrades;
+
+    public void ShowPendingUpgrades()
+    {
+        if (GameManager.IsGameOver || IsUpgradePanelOpen || pendingUpgrades <= 0) return;
+        pendingUpgrades--;
+        GenerateUpgradeCards();
+        UpdateCardUI();
+        upgradePanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    public void ShowUpgradePanel()
+    {
+        if (GameManager.IsGameOver) return;
+        pendingUpgrades++;
+        if (!StageController.IsCollectingExperience) ShowPendingUpgrades();
+    }
+
     public void GenerateUpgradeCards()
     {
         //清除上一輪升級留下的卡牌
@@ -386,7 +509,7 @@ public class UpgradeManager : MonoBehaviour
             case SpecialCardType.MythicSurvival:
                 return new UpgradeCard(
                     "鮮血追獵",
-                    "吸血增加+10%\n" +
+                    "吸血增加+1%\n" +
                     "移動速度最終提升20%",
                     CardCategory.Special,
 
@@ -752,7 +875,7 @@ public class UpgradeManager : MonoBehaviour
                         100f;
 
                     description =
-                        $"吸血 +{amount:0.#}%";
+                        $"吸血 +{amount:0.##}%";
                     break;
                 }
 
@@ -844,6 +967,8 @@ public class UpgradeManager : MonoBehaviour
     //當玩家點擊 UI 畫面上的第 1、2、3 個按鈕時，就會觸發這個方法
     public void SelectCard(int index)
     {
+        if (rifleRewardOpen) { SelectRifleReward(index); return; }
+
         // 本局結束後，不再執行遊戲操作。
         if (GameManager.IsGameOver)
         {
@@ -1138,7 +1263,7 @@ public class UpgradeManager : MonoBehaviour
             //吸血增加 10 個百分點
             //移動速度最終提升 20%
             case SpecialCardType.MythicSurvival:
-                playerStats.AddLifeSteal(0.1f);
+                playerStats.AddLifeSteal(0.01f);
                 playerStats.AddMoveSpeedMultiplier(0.20f);
 
                 Debug.Log(
@@ -1162,6 +1287,11 @@ public class UpgradeManager : MonoBehaviour
     void CloseUpgradePanel()
     {
         upgradePanel.SetActive(false);
-        Time.timeScale = GameManager.IsGameOver ? 0f : 1f;
+        if (pendingUpgrades > 0 && !GameManager.IsGameOver)
+        {
+            ShowPendingUpgrades();
+            return;
+        }
+        Time.timeScale = (GameManager.IsGameOver || StageController.IsIntermission) ? 0f : 1f;
     }
 }

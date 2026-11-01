@@ -42,6 +42,7 @@ public class ExpGem : MonoBehaviour
     [Tooltip("拾取時是否在 Console 顯示獲得的經驗值")]
     public bool showExpDebug = false;
 
+    private bool collected;
     private Vector3 startPosition;
     private Transform player;
 
@@ -121,6 +122,14 @@ public class ExpGem : MonoBehaviour
     }
 
     //拾取
+    public void CollectForIntermission(PlayerLevel playerLevel)
+    {
+        if (collected || playerLevel == null || GameManager.IsGameOver) return;
+        collected = true;
+        playerLevel.AddExp(GetExperienceAmount(playerLevel));
+        Destroy(gameObject);
+    }
+
     void OnTriggerEnter(Collider other)
     {
         // 本局結束後，不再執行遊戲操作。
@@ -146,6 +155,8 @@ public class ExpGem : MonoBehaviour
             return;
         }
 
+        if (collected) return;
+        collected = true;
         int gainedExp = GetExperienceAmount(playerLevel);
         playerLevel.AddExp(gainedExp);
 

@@ -46,7 +46,7 @@ public class PauseManager : MonoBehaviour
     private void Update()
     {
         // 本局結束後，不再執行遊戲操作。
-        if (GameManager.IsGameOver)
+        if (GameManager.IsGameOver || StageController.IsIntermission)
         {
             return;
         }
@@ -62,7 +62,7 @@ public class PauseManager : MonoBehaviour
     {
         //切換場景或物件關閉時，
         //避免 Time.timeScale 停留在 0
-        if (IsPaused && !GameManager.IsGameOver)
+        if (IsPaused && !GameManager.IsGameOver && !StageController.IsIntermission)
         {
             Time.timeScale = 1f;
         }
@@ -93,7 +93,7 @@ public class PauseManager : MonoBehaviour
     public void TogglePause()
     {
         // 本局結束後，不再執行遊戲操作。
-        if (GameManager.IsGameOver)
+        if (GameManager.IsGameOver || StageController.IsIntermission)
         {
             return;
         }
@@ -112,7 +112,7 @@ public class PauseManager : MonoBehaviour
     public void PauseGame()
     {
         // 本局結束後，不再執行遊戲操作。
-        if (GameManager.IsGameOver)
+        if (GameManager.IsGameOver || StageController.IsIntermission)
         {
             return;
         }
@@ -140,7 +140,7 @@ public class PauseManager : MonoBehaviour
     public void ResumeGame()
     {
         // 本局結束後，不再執行遊戲操作。
-        if (GameManager.IsGameOver)
+        if (GameManager.IsGameOver || StageController.IsIntermission)
         {
             return;
         }

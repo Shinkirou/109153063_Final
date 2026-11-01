@@ -492,6 +492,7 @@ GameObject:
   - component: {fileID: 59086949}
   - component: {fileID: 59086950}
   - component: {fileID: 59086951}
+  - component: {fileID: 59086952}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -593,6 +594,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 813763208}
+  - {fileID: 1439715361}
+  - {fileID: 1398828632}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &59086946
@@ -607,6 +610,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 987f1cba640c8c244b434034128c489f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
+  rollKey: 32
+  rollDuration: 0.333
+  rollInvincibilityDuration: 0.333
+  rollCooldown: 1.5
+  rollSpeedMultiplier: 2
 --- !u!143 &59086947
 CharacterController:
   m_ObjectHideFlags: 0
@@ -794,7 +802,8 @@ MonoBehaviour:
   fallbackMaxHP: 100
   hpText: {fileID: 1734293787}
   hpFillImage: {fileID: 937535095}
-  invincibleTime: 0.4
+  hitInvincibilityDuration: 0.1
+  sameAttackerInterval: 0.5
   playerRenderer: {fileID: 59086943}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   damageColor: {r: 1, g: 0, b: 0, a: 1}
@@ -823,7 +832,7 @@ MonoBehaviour:
   attackRangeMultiplier: 0
   baseAttackSpeed: 2
   attackSpeedMultiplier: 0
-  baseDamage: 3
+  baseDamage: 20
   flatDamageBonus: 0
   damageMultiplier: 1
   criticalRate: 0
@@ -832,6 +841,40 @@ MonoBehaviour:
   lifeSteal: 0
   armor: 0
   armorMultiplier: 0
+--- !u!114 &59086952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59086941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdd4fca05fc9ed049a3bb718496fdd67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RifleAugments
+  dualFireEnabled: 0
+  dualFireDamageMultiplier: 0.7
+  dualFireSeparation: 0.5
+  leftFirePoint: {fileID: 1439715361}
+  rightFirePoint: {fileID: 1398828632}
+  dualFireDelayFraction: 0.2
+  heatEnabled: 0
+  heatMaxAttackSpeedBonus: 0.4
+  heatSecondsToOverheat: 8
+  heatCooldownSeconds: 2
+  heatIdleCooldownSeconds: 4
+  heatRenderer: {fileID: 0}
+  heatColdColor: {r: 1, g: 1, b: 1, a: 1}
+  heatHotColor: {r: 1, g: 0, b: 0, a: 1}
+  currentHeat: 0
+  isOverheated: 0
+  killOverdriveEnabled: 0
+  killOverdriveAttackSpeedBonus: 0.3
+  killOverdriveDuration: 3
+  trackingMarkEnabled: 0
+  trackingMarkBonusPerHit: 0.05
+  trackingMarkMaxBonus: 0.3
 --- !u!1 &63111018
 GameObject:
   m_ObjectHideFlags: 0
@@ -2119,6 +2162,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageController
   survivalDuration: 150
   stageText: {fileID: 1475839426}
+  enemySpawner: {fileID: 1188722976}
+  killStageDuration: 180
+  killTarget: 200
+  bossDuration: 180
+  bossBaseHealth: 1500
+  bossDamage: 5
+  bossScale: 2
 --- !u!4 &595388178
 Transform:
   m_ObjectHideFlags: 0
@@ -4387,7 +4437,7 @@ MonoBehaviour:
   spawnInterval: 2
   spawnDistance: 15
   minimumSpawnInterval: 0.05
-  spawnIntervalScalingDuration: 420
+  spawnIntervalScalingDuration: 250
   spawnIntervalMultiplierCurve:
     serializedVersion: 2
     m_Curve:
@@ -4412,8 +4462,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  enemyTypeScalingDuration: 540
-  scalingDuration: 540
+  enemyTypeScalingDuration: 180
+  scalingDuration: 250
   healthMultiplierCurve:
     serializedVersion: 2
     m_Curve:
@@ -4540,6 +4590,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1396209739}
   m_CullTransparentMesh: 1
+--- !u!1 &1398828631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1398828632}
+  m_Layer: 0
+  m_Name: RightFirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1398828632
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1398828631}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.25, y: 0, z: 0.88}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 59086945}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1432170251
 GameObject:
   m_ObjectHideFlags: 0
@@ -4708,6 +4789,37 @@ Transform:
   m_Children:
   - {fileID: 1188722975}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1439715360
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1439715361}
+  m_Layer: 0
+  m_Name: LeftFirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1439715361
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1439715360}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.25, y: 0, z: 0.88}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 59086945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1442823292
 GameObject:
@@ -6189,15 +6301,17 @@ MonoBehaviour:
   baseMythicCardChance: 1.5
   mythicChancePerLuckLevel: 0.25
   maxMythicCardChance: 10
-  damagePFV: 2
+  damagePFV: 20
   attackRangePFV: 0.08
   attackSpeedPFV: 0.12
   maxHPPFV: 10
   moveSpeedPFV: 0.08
   criticalRatePFV: 0.03
   criticalDamagePFV: 0.05
-  lifeStealPFV: 0.025
+  lifeStealPFV: 0.0025
   armorPFV: 3
+  rifleRewardBackground: {r: 0.08, g: 0.22, b: 0.32, a: 0.95}
+  rifleRewardFontSize: 22
 --- !u!4 &1863728833
 Transform:
   m_ObjectHideFlags: 0

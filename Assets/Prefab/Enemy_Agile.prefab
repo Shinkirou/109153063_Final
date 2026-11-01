@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   enemyName: Enemy_Agile
-  maxHP: 3
+  maxHP: 30
   moveSpeed: 5
   damage: 1
 --- !u!114 &3132777825240662838

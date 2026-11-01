@@ -13,6 +13,7 @@ public enum DefeatReason
 {
     None,
     PlayerDeath,
+    KillStageTimeout,
     BossTimeout // 接入點已保留；本次沒有加入 Boss 計時器。
 }
 
@@ -47,7 +48,7 @@ public class GameManager
         {
             return;
         }
-        if (reason != DefeatReason.PlayerDeath && reason != DefeatReason.BossTimeout)
+        if (reason != DefeatReason.PlayerDeath && reason != DefeatReason.BossTimeout && reason != DefeatReason.KillStageTimeout)
         {
             Debug.LogError("GameManager.Defeat 需要有效的失敗原因。");
             return;
@@ -61,6 +62,13 @@ public class GameManager
         RunResultUI.Show(reason);
     }
 
+    public static void Victory()
+    {
+        if (IsGameOver) return;
+        CurrentPhase = GamePhase.Victory;
+        Time.timeScale = 0f;
+        RunResultUI.ShowVictory();
+    }
     public static void StartGame(float difficulty)
     {
         if (!Application.CanStreamedLevelBeLoaded("level01"))

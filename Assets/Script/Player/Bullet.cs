@@ -8,6 +8,7 @@ public class Bullet : MonoBehaviour
     public float lifeTime = 10f;
 
     private Transform target;
+    private Vector3 aimOffset;
     //記錄子彈最後一次有效的飛行方向。
     private Vector3 lastDirection;
 
@@ -53,7 +54,7 @@ public class Bullet : MonoBehaviour
         //目標存在時，持續更新子彈的追蹤方向。
         if (target != null)
         {
-            Vector3 direction = target.position - transform.position;
+            Vector3 direction = target.position + aimOffset - transform.position;
             direction.y = 0f;
 
             //只有方向有效時才更新，避免覆蓋原本的飛行方向。
@@ -71,8 +72,9 @@ public class Bullet : MonoBehaviour
     public void SetTarget(
         Transform newTarget, int newDamage, 
         float newCriticalRate, float newCriticalDamage, 
-        float newLifeStealRate, PlayerHealth newPlayerHealth)
+        float newLifeStealRate, PlayerHealth newPlayerHealth, Vector3 newAimOffset)
     {
+        aimOffset = newAimOffset;
         target = newTarget;                         //設定子彈的攻擊目標
         damage = newDamage;                         //設定子彈的傷害值
 
@@ -123,10 +125,19 @@ public class Bullet : MonoBehaviour
         }
 
         //計算這次攻擊的最終傷害
-        int finalDamage = CalculateDamage();
+        if (enemyHealth.IsDead) { Destroy(gameObject); return; }
+        RifleAugments ownerRifle = playerHealth != null ? playerHealth.GetComponent<RifleAugments>() : null;
+        float markMultiplier = ownerRifle != null ? ownerRifle.RegisterMarkedHit(enemyHealth) : 1f;
+        int finalDamage = Mathf.Max(1, Mathf.RoundToInt(CalculateDamage() * markMultiplier));
 
         //每顆子彈只造成一次傷害。
+        bool wasAlive = !enemyHealth.IsDead;
         enemyHealth.TakeDamage(finalDamage);
+        if (wasAlive && enemyHealth.IsDead && playerHealth != null)
+        {
+            RifleAugments rifle = playerHealth.GetComponent<RifleAugments>();
+            if (rifle != null) rifle.NotifyEnemyKilled();
+        }
 
         //根據這次實際造成的傷害進行吸血
         if (playerHealth != null)

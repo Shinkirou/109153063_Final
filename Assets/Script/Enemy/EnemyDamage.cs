@@ -20,7 +20,7 @@ public class EnemyDamage : MonoBehaviour
 
         if (playerHealth != null)
         {
-            playerHealth.TakeDamage(enemyStats.damage);
+            playerHealth.TakeDamage(enemyStats.damage, gameObject);
         }
     }
 
@@ -35,7 +35,7 @@ public class EnemyDamage : MonoBehaviour
 
         if (playerHealth != null)
         {
-            playerHealth.TakeDamage(enemyStats.damage);
+            playerHealth.TakeDamage(enemyStats.damage, gameObject);
         }
     }
 }

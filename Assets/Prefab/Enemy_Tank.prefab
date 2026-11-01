@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   enemyName: Enemy_Tank
-  maxHP: 15
+  maxHP: 150
   moveSpeed: 2
   damage: 5
 --- !u!114 &5738093203448691626
